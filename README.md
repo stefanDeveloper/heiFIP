@@ -1,2 +1,1 @@
-# flow-image-processor
-Convert flows into images 
+# Packet Image Processor

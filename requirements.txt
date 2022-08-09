@@ -1,0 +1,4 @@
+pandas==1.4.3
+scapy==2.4.5
+image==1.5.33
+numpy==1.23.1
