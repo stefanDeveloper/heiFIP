@@ -1,0 +1,23 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "flow_image_processor"
+version = "0.0.1"
+authors = [
+  { name="Stefan Machmeier", email="stefan.machmeier@uni-heidelberg.de" },
+]
+description = "A small example package"
+readme = "README.md"
+license = { file="LICENSE" }
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: EUPL",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/stefanDeveloper/flow-image-processor"
+"Bug Tracker" = "https://github.com/stefanDeveloper/flow-image-processor/issues"
