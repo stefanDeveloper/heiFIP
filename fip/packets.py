@@ -61,9 +61,8 @@ class PacketProcessor(ABC):
                 packets.append(processed_packet)
         return packets
 
-    @abstractmethod
     def preprocessing(self, packet: Packet) -> Packet:
-        pass
+        return packet
 
     def __exit__(self, exc_type, exc_value, tracback) -> None:
         pass

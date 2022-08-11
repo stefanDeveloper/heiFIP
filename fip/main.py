@@ -3,22 +3,22 @@ from queue import Queue
 from threading import Thread
 from PIL import Image as PILImage
 from fip.image import FlowImage
- 
-from fip.packets import HTTPPacketProcessor
+
+from fip.packets import PacketProcessor
 from tqdm import tqdm
+
 
 class Runner():
 
     def __init__(self, thread_number) -> None:
         self.thread_number = thread_number
 
-    def create_image(self, filename, output_dir, width, append, tiled):
-        with HTTPPacketProcessor(dir=filename) as result:
+    def create_image(self, filename, output_dir, width: str, append: bool, tiled: bool):
+        with PacketProcessor(dir=filename) as result:
             for pkt in result:
                 image = FlowImage(pkt.packets, width=width,
                                   append=append, tiled=tiled)
                 im = PILImage.fromarray(image["matrix"])
-                # os.mkdir(output_dir)
                 im.save(f'{output_dir}/{pkt.file}_processed.png')
 
     def start_process(self, file_queue, pbar, *args):
@@ -43,6 +43,6 @@ class Runner():
                 file_queue, pbar, kwargs['width'],  kwargs['append'], kwargs['tiled']))
             thread.daemon = True
             thread.start()
-        
+
         file_queue.join()
         pbar.close()

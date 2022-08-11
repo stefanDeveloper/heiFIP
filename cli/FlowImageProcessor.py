@@ -8,7 +8,7 @@ except ImportError:
 from fip.main import Runner
 from . import CONTEXT_SETTINGS
 from fip.version import __version__
-
+from fip.packets import HTTPPacketProcessor
 
 @click.version_option(version=__version__)
 @click.group(context_settings=CONTEXT_SETTINGS)
