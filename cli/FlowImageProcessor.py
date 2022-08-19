@@ -12,7 +12,6 @@ from fip.packets import HTTPPacketProcessor
 
 @click.version_option(version=__version__)
 @click.group(context_settings=CONTEXT_SETTINGS)
-#@click.option("-c", "--config", "config_file", type=click.Path(dir_okay=False))
 def cli():
     click.secho("Starting FlowImageProcessor CLI")
     #if not config_file:
