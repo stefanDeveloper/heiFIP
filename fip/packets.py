@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from scapy.all import IP, Ether, Packet, wrpcap, rdpcap
+from scapy.all import IP, Ether, Packet, wrpcap, rdpcap, RandIP, RandMAC
 
 import os
 
@@ -62,7 +62,15 @@ class PacketProcessor(ABC):
         return packets
 
     def preprocessing(self, packet: Packet) -> Packet:
-        return packet
+        processed_packet = packet
+        if processed_packet.haslayer(Ether):
+            processed_packet[Ether].src = RandMAC()._fix()
+            processed_packet[Ether].dst = RandMAC()._fix()
+
+        if processed_packet.haslayer(IP):
+            processed_packet[IP].src = RandIP()._fix()
+            processed_packet[IP].dst =RandIP()._fix()
+        return processed_packet
 
     def __exit__(self, exc_type, exc_value, tracback) -> None:
         pass
@@ -74,13 +82,13 @@ class HTTPPacketProcessor(PacketProcessor):
 
     def preprocessing(self, packet: Packet)-> Packet:
         processed_packet = packet
-        #if processed_packet.haslayer(Ether):
-        #    processed_packet[Ether].src = "00:00:00:00:00:00"
-        #    processed_packet[Ether].dst = "00:00:00:00:00:00"
+        if processed_packet.haslayer(Ether):
+            processed_packet[Ether].src = RandIP()._fix()
+            processed_packet[Ether].dst = RandIP()._fix()
 
-        #if processed_packet.haslayer(IP):
-        #    processed_packet[IP].src = "0.0.0.0"
-        #    processed_packet[IP].dst = "0.0.0.0"
+        if processed_packet.haslayer(IP):
+            processed_packet[IP].src = RandIP()._fix()
+            processed_packet[IP].dst =RandIP()._fix()
 
         return processed_packet
 
