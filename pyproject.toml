@@ -14,9 +14,12 @@ license = { file="LICENSE" }
 requires-python = ">=3.10"
 classifiers = [
     "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: EUPL",
+    "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
     "Operating System :: OS Independent",
 ]
+
+[project.scripts]
+fip = "cli.FlowImageProcessor:cli"
 
 [project.urls]
 "Homepage" = "https://github.com/stefanDeveloper/flow-image-processor"
