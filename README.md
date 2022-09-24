@@ -9,5 +9,5 @@
 fip -h
 
 # Convert PCAP to image
-fip -r /PATH/PCAPs -w /PATH/IMAGES
+fip extract -r /PATH/PCAPs -w /PATH/IMAGES
 ```
