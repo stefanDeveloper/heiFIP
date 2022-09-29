@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from scapy.all import IP, Ether, Packet, wrpcap, rdpcap, RandIP, RandMAC
+from scapy.all import IP, IPv6, Ether, Packet, wrpcap, rdpcap, RandIP, RandMAC
 
 import os
 
@@ -70,6 +70,9 @@ class PacketProcessor(ABC):
         if processed_packet.haslayer(IP):
             processed_packet[IP].src = RandIP()._fix()
             processed_packet[IP].dst =RandIP()._fix()
+        elif processed_packet.haslayer(IPv6):
+            processed_packet[IPv6].src = RandIP()._fix()
+            processed_packet[IPv6].dst = RandIP()._fix()
         return processed_packet
 
     def __exit__(self, exc_type, exc_value, tracback) -> None:
@@ -89,6 +92,10 @@ class HTTPPacketProcessor(PacketProcessor):
         if processed_packet.haslayer(IP):
             processed_packet[IP].src = RandIP()._fix()
             processed_packet[IP].dst =RandIP()._fix()
+        elif processed_packet.haslayer(IPv6):
+            processed_packet[IPv6].src = RandIP()._fix()
+            processed_packet[IPv6].dst = RandIP()._fix()
+
 
         return processed_packet
 
