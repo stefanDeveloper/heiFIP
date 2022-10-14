@@ -103,7 +103,6 @@ class FlowImage(NetworkTrafficImage):
             dim = int(np.ceil(np.sqrt(length)))
 
         result = []
-        binaries = binaries[:dim*dim*8]
         for x in binaries:
             x = x[:dim*dim]
             x = np.array(x+[self.fill]*(dim*dim-len(x)))
