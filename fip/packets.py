@@ -1,13 +1,13 @@
 from abc import ABC, abstractmethod
 
-from scapy.all import DNS, IP, UDP, IPv6, Ether, Packet, wrpcap, rdpcap, RandIP, RandMAC, TCP
+from scapy.all import DNS, IP, UDP, IPv6, Ether, Packet, wrpcap, rdpcap, RandIP, RandMAC, TCP, Raw
 from typing import Type
 from scapy.layers.http import HTTPRequest, HTTPResponse
 
 import os
 
 from fip.ssh import SSH
-from fip.custom_header import custom_IP, custom_IPv6, custom_HTTP_Request, custom_HTTP_Response, custom_DNS, custom_TCP, custom_UDP
+from fip.custom_header import SUPPORTED_HEADERS, custom_IP, custom_IPv6, custom_HTTP_Request, custom_HTTP_Response, custom_DNS, custom_TCP, custom_UDP
 
 
 class PCAPProcessed(ABC):
@@ -19,10 +19,11 @@ class PCAPProcessed(ABC):
 
 
 class PacketProcessor(ABC):
-    def __init__(self, dir: str, file_extension="pcap") -> None:
+    def __init__(self, dir: str, preprocessing_type: str, file_extension="pcap") -> None:
         assert os.path.exists(dir)
 
         self.dir = dir
+        self.preprocessing_type = preprocessing_type
         self.files = []
         if os.path.isdir(dir):
             self.__get_filenames(file_extension)
@@ -66,9 +67,46 @@ class PacketProcessor(ABC):
         return packets
 
     def preprocessing(self, packet: Packet) -> Packet:
-        for layer_class in packet.layers():
-            packet = self.preprocess_layer(packet, layer_class)
+        if self.preprocessing_type == "header":
+            headers = SUPPORTED_HEADERS + [Raw]
+            layers = packet.layers()
+            if len([layer for layer in layers if layer in headers]) == 0:
+                return None
+            for layer_class in packet.layers():
+                if layer_class in (headers):
+                    packet = self.preprocess_layer(packet, layer_class)
+                else:
+                    packet = self.remove_layer(packet, layer_class)
+
+        elif self.preprocessing_type == "payload":
+            if packet.haslayer(Raw):
+                return packet[Raw]
+            else:
+                return None
+
         return packet
+
+    def remove_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
+
+        layers = packet.layers()
+        if len(layers) == 1:
+            #the packet is now completly empty
+            return None
+
+        for i, layer in enumerate(layers):
+            if layer == layer_class:
+                after_layer = None
+                if i != (len(layers) - 1):
+                    after_layer = packet[layers[i+1]]
+                if i != 0:
+                    packet[layers[i-1]].remove_payload()
+                    if after_layer:
+                        packet /= after_layer
+                else:
+                    packet = after_layer
+                break
+        return packet
+
     
     def preprocess_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
         if layer_class == IP:

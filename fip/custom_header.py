@@ -1,5 +1,9 @@
 from scapy.all import DNSQRField, DNSRRField, Packet, BitField, BitEnumField, FlagsField, XByteField, ByteField, ByteEnumField, StrField, IP_PROTOS, TCPOptionsField
 from scapy.layers.inet6 import  ipv6nh
+from scapy.all import IP, IPv6, DNS, TCP, UDP
+from scapy.layers.http import HTTPRequest, HTTPResponse
+
+SUPPORTED_HEADERS = [IP, IPv6, DNS, HTTPRequest, HTTPResponse, TCP, UDP]
 
 class custom_IP(Packet):
     name = "IP"

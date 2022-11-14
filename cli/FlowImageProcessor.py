@@ -26,7 +26,14 @@ def cli():
     help="Destination file path, stores result",
 )
 @click.option("-r", "--read", "input_dir", type=click.Path())
+@click.option(
+    "-p",
+    "--preprocess",
+    "preprocessing_type",
+    type=click.STRING,
+    default="none",
+    help="Applies a preprocessing to the input data:\n none: No preprocessing\n payload: Only payload data is used\n header: Preprocesses headers (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove some biasing data")
 @cli.command(name="extract")
-def extract(input_dir, output_dir):
+def extract(input_dir, output_dir, preprocessing_type):
     runner = Runner(7)
-    runner.run(input_dir, output_dir, width=128, append=False, tiled=True)
+    runner.run(input_dir, output_dir, preprocessing_type, width=128, append=False, tiled=True)

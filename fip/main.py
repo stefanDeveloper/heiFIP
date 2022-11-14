@@ -14,9 +14,15 @@ class Runner():
     def __init__(self, thread_number) -> None:
         self.thread_number = thread_number
 
-    def create_image(self, filename, output_dir, pbar, width: str, append: bool, tiled: bool):
-        with PacketProcessor(dir=filename) as result:
+    def create_image(self, filename, output_dir, pbar, preprocessing_type, width: str, append: bool, tiled: bool):
+        if preprocessing_type not in ["payload", "header"]:
+            preprocessing_type = "none"
+        with PacketProcessor(dir=filename, preprocessing_type=preprocessing_type) as result:
             for pkt in result:
+                # when no file matches the preprocessing
+                if len(pkt.packets) == 0:
+                    pbar.update(1)
+                    continue
                 image = FlowImage(pkt.packets, width=width,
                                   append=append, tiled=tiled)
                 im = PILImage.fromarray(image["matrix"])
@@ -25,13 +31,13 @@ class Runner():
                 im.save(f'{output_dir}/{pkt.file}_processed.png')
                 pbar.update(1)
 
-    def start_process(self, file_queue, pbar, *args):
+    def start_process(self, file_queue, pbar, preprocessing_type, *args):
         while not file_queue.empty():
             filename, output_dir = file_queue.get()
-            self.create_image(filename, output_dir, pbar, *args)
+            self.create_image(filename, output_dir, pbar, preprocessing_type, *args)
             file_queue.task_done()
 
-    def run(self, input_dir, output_dir, **kwargs):
+    def run(self, input_dir, output_dir, preprocessing_type, **kwargs):
         # Get all executable files in input directory and add them into queue
         file_queue = Queue()
         folders = [f for f in glob.glob(input_dir + "**/", recursive=True)]
@@ -44,7 +50,7 @@ class Runner():
         pbar = tqdm(total=len(files))
         for _ in range(self.thread_number):
             thread = Thread(target=self.start_process, args=(
-                file_queue, pbar, kwargs['width'],  kwargs['append'], kwargs['tiled']))
+                file_queue, pbar, preprocessing_type, kwargs['width'],  kwargs['append'], kwargs['tiled']))
             thread.daemon = True
             thread.start()
 
