@@ -66,8 +66,9 @@ class PacketProcessor(ABC):
         return packets
 
     def preprocessing(self, packet: Packet) -> Packet:
-        for layer_class in packet.getlayer():
+        for layer_class in packet.layers():
             packet = self.preprocess_layer(packet, layer_class)
+        return packet
     
     def preprocess_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
         if layer_class == IP:
