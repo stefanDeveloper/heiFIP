@@ -7,8 +7,7 @@ from scapy.layers.http import HTTPRequest, HTTPResponse
 import os
 
 from fip.ssh import SSH
-from fip.custom_header import SUPPORTED_HEADERS, custom_IP, custom_IPv6, custom_HTTP_Request, custom_HTTP_Response, custom_DNS, custom_TCP, custom_UDP
-
+from fip.custom_header import SUPPORTED_HEADERS, custom_IP, custom_IPv6, custom_HTTP_Request, custom_HTTP_Response, custom_DNS, custom_DNSQR, custom_DNSRR, custom_TCP, custom_UDP
 
 class PCAPProcessed(ABC):
     def __init__(self, file: str, packets: list[Packet]) -> None:
@@ -106,67 +105,115 @@ class PacketProcessor(ABC):
                     packet = after_layer
                 break
         return packet
+    
+    def preprocess_DNS_messages(self, packet: Packet, message_type: str) -> None:
+        message = getattr(packet[DNS].copy(), message_type)
+        
+        if message_type == "qd":
+            new_message = custom_DNSQR(
+                qname = message.qname,
+                qtype = message.qtype
+                )
+            
+            while message:=message.payload:
+                new_message /= custom_DNSQR(
+                    qname = message.qname,
+                    qtype = message.qtype,
+                    )
+        else:
+            new_message = custom_DNSRR(
+                rrname = message.rrname,
+                type = message.type,
+                ttl = message.ttl
+                )
+            
+            while message:=message.payload:
+                new_message /= custom_DNSRR(
+                    rrname = message.rrname,
+                    type = message.type,
+                    ttl = message.ttl
+                    )
+        
+        setattr(packet[DNS], message_type, new_message)
 
     
     def preprocess_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
+        layer_copy = packet[layer_class].copy()
         if layer_class == IP:
-            new_layer = custom_IP(version=packet[IP].version,
-                                        tos=packet[IP].tos, ttl=packet[IP].ttl,
-                                        flags=packet[IP].flags,
-                                        proto=packet[IP].proto)
+            new_layer = custom_IP(
+                version=layer_copy.version,
+                tos=layer_copy.tos, 
+                ttl=layer_copy.ttl,
+                flags=layer_copy.flags,
+                proto=layer_copy.proto)
+
         elif layer_class == IPv6:
             new_layer = custom_IPv6(
-                version = packet[IPv6].version,
-                tc = packet[IPv6].tc, 
-                nh = packet[IPv6].nh,
-                hlim = packet[IPv6].hlim,
+                version = layer_copy.version,
+                tc = layer_copy.tc, 
+                nh = layer_copy.nh,
+                hlim = layer_copy.hlim,
             )
         
         elif layer_class == TCP:
-            new_layer = custom_TCP(flags=packet[TCP].flags, 
-            options=packet[TCP].options)
+            new_layer = custom_TCP(
+                flags=layer_copy.flags, 
+                options=layer_copy.options
+                )
 
         elif layer_class == UDP:
             new_layer = custom_UDP()
 
         elif layer_class == HTTPRequest:
             new_layer = custom_HTTP_Request(
-                Method = packet[HTTPRequest].Method,
-                Path = packet[HTTPRequest].Path,
-                User_Agent = packet[HTTPRequest].User_Agent,
-                Content_Type = packet[HTTPRequest].Content_Type,
-                Connection = packet[HTTPRequest].Connection,
-                Accept = packet[HTTPRequest].Accept,
-                Accept_Charset = packet[HTTPRequest].Accept_Charset,
-                Cookie = packet[HTTPRequest].Cookie,
-                TE = packet[HTTPRequest].TE
+                Method = layer_copy.Method,
+                Path = layer_copy.Path,
+                User_Agent = layer_copy.User_Agent,
+                Content_Type = layer_copy.Content_Type,
+                Connection = layer_copy.Connection,
+                Accept = layer_copy.Accept,
+                Accept_Charset = layer_copy.Accept_Charset,
+                Cookie = layer_copy.Cookie,
+                TE = layer_copy.TE
                 )
 
         elif layer_class == HTTPResponse:
             new_layer = custom_HTTP_Response(
-                Status_Code = packet[HTTPResponse].Status_Code,
-                Server = packet[HTTPResponse].Server,
-                Content_Type = packet[HTTPResponse].Content_Type,
-                Connection = packet[HTTPResponse].Connection,
-                Content_Encoding = packet[HTTPResponse].Content_Encoding,
-                Set_Cookie = packet[HTTPResponse].Set_Cookie,
+                Status_Code = layer_copy.Status_Code,
+                Server = layer_copy.Server,
+                Content_Type = layer_copy.Content_Type,
+                Connection = layer_copy.Connection,
+                Content_Encoding = layer_copy.Content_Encoding,
+                Set_Cookie = layer_copy.Set_Cookie,
                 )
+                
         elif layer_class == DNS:
+            if packet[DNS].qd:
+                self.preprocess_DNS_messages(packet, "qd")
+            if packet[DNS].an:
+                self.preprocess_DNS_messages(packet, "an")
+            if packet[DNS].ns:
+                self.preprocess_DNS_messages(packet, "ns")
+            if packet[DNS].ar:
+                self.preprocess_DNS_messages(packet, "ar")
+            
+            layer_copy = packet[DNS].copy()
+
             new_layer = custom_DNS(
-                qr = packet[DNS].qr,
-                opcode = packet[DNS].opcode,
-                aa = packet[DNS].aa,
-                tc = packet[DNS].tc,
-                rd = packet[DNS].rd,
-                ra = packet[DNS].ra,
-                z = packet[DNS].z,
-                ad = packet[DNS].ad,
-                cd = packet[DNS].cd,
-                rcode = packet[DNS].rcode,
-                qd = packet[DNS].qd,
-                an = packet[DNS].an,
-                ns = packet[DNS].ns,
-                ar = packet[DNS].ar
+                qr = layer_copy.qr,
+                opcode = layer_copy.opcode,
+                aa = layer_copy.aa,
+                tc = layer_copy.tc,
+                rd = layer_copy.rd,
+                ra = layer_copy.ra,
+                z = layer_copy.z,
+                ad = layer_copy.ad,
+                cd = layer_copy.cd,
+                rcode = layer_copy.rcode,
+                qd = layer_copy.qd,
+                an = layer_copy.an,
+                ns = layer_copy.ns,
+                ar = layer_copy.ar
             )
         
         else:
