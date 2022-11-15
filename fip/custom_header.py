@@ -1,8 +1,8 @@
-from scapy.all import DNSQRField, DNSRRField, Packet, BitField, BitEnumField, FlagsField, XByteField, ByteField, ByteEnumField, StrField, IP_PROTOS, TCPOptionsField
+from scapy.all import DNSQRField, DNSRRField, ShortEnumField, IntField, Packet, BitField, BitEnumField, FlagsField, XByteField, ByteField, ByteEnumField, StrField, IP_PROTOS, TCPOptionsField
 from scapy.layers.inet6 import  ipv6nh
 from scapy.all import IP, IPv6, DNS, TCP, UDP
 from scapy.layers.http import HTTPRequest, HTTPResponse
-
+from scapy.layers.dns import DNSStrField, dnstypes, InheritOriginDNSStrPacket
 SUPPORTED_HEADERS = [IP, IPv6, DNS, HTTPRequest, HTTPResponse, TCP, UDP]
 
 class custom_IP(Packet):
@@ -57,7 +57,7 @@ class custom_HTTP(Packet):
 
 
 class custom_HTTP_Request(custom_HTTP):
-    name = "HTTP Response"
+    name = "HTTP Request"
     fields_desc = [
         StrField("Method", "GET"),
         StrField("Path", "/"),
@@ -80,6 +80,23 @@ class custom_HTTP_Response(custom_HTTP):
         StrField("Content_Type", None),
         StrField("Server", None),
         StrField("Set_Cookie", None)
+    ]
+
+class custom_DNSQR(InheritOriginDNSStrPacket):
+    name = "DNS Question Record"
+    show_indent = 0 
+    fields_desc = [
+        DNSStrField("qname", "none"),
+        ShortEnumField("qtype", 1, dnstypes)
+    ]
+
+class custom_DNSRR(InheritOriginDNSStrPacket):
+    name = "DNS Resource Record"
+    show_indent = 0
+    fields_desc = [
+        DNSStrField("rrname", ""),
+        ShortEnumField("type", 1, dnstypes),
+        IntField("ttl", 0)
     ]
 
 class custom_DNS(Packet):
