@@ -17,7 +17,7 @@ class custom_IP(Packet):
 
 class custom_IPv6(Packet):
     name = "IPv6"
-    field_desc = [
+    fields_desc = [
         BitField("version", 6, 8), # normally 4 bits, last 4bits will always be 0
         BitField("tc", 0, 8),
         ByteEnumField("nh", 59, ipv6nh),
