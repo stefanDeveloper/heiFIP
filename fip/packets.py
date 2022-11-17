@@ -71,7 +71,7 @@ class PacketProcessor(ABC):
             layers = packet.layers()
             if len([layer for layer in layers if layer in headers]) == 0:
                 return None
-            for layer_class in packet.layers():
+            for layer_class in layers:
                 if layer_class in (headers):
                     packet = self.preprocess_layer(packet, layer_class)
                 else:
