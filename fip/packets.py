@@ -107,7 +107,7 @@ class PacketProcessor(ABC):
         return packet
     
     def preprocess_DNS_messages(self, packet: Packet, message_type: str) -> None:
-        message = getattr(packet[DNS].copy(), message_type)
+        message = getattr(packet[DNS], message_type)
         
         if message_type == "qd":
             new_message = custom_DNSQR(
@@ -138,7 +138,7 @@ class PacketProcessor(ABC):
 
     
     def preprocess_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
-        layer_copy = packet[layer_class].copy()
+        layer_copy = packet[layer_class]
         if layer_class == IP:
             new_layer = custom_IP(
                 version=layer_copy.version,
@@ -197,7 +197,7 @@ class PacketProcessor(ABC):
             if packet[DNS].ar:
                 self.preprocess_DNS_messages(packet, "ar")
             
-            layer_copy = packet[DNS].copy()
+            layer_copy = packet[DNS]
 
             new_layer = custom_DNS(
                 qr = layer_copy.qr,
