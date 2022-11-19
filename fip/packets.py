@@ -76,17 +76,11 @@ class PacketProcessor(ABC):
             layers = packet.layers()
             if len([layer for layer in layers if layer in headers]) == 0:
                 return None
-            
-            previous_layer_class = None
-            for i,layer_class in enumerate(layers):
-                next_layer_class = None
-                if i < len(layers)-1:
-                    next_layer_class = layers[i+1]
+            for layer_class in layers:
                 if layer_class in headers:
-                    packet, new_layer_class = self.preprocess_layer(packet, layer_class, previous_layer_class, next_layer_class)
-                    previous_layer_class = new_layer_class
+                    packet = self.preprocess_layer(packet, layer_class)
                 else:
-                    packet = self.remove_layer(packet, layer_class, previous_layer_class, next_layer_class)
+                    packet = self.remove_layer(packet, layer_class)
 
         elif self.preprocessing_type == "payload":
             if packet.haslayer(Raw):
@@ -159,21 +153,23 @@ class PacketProcessor(ABC):
 
         return processed_packet
 
-    def remove_layer(self, packet: Packet, layer_class: Type[Packet], previous_layer_class: Type[Packet], next_layer_class: Type[Packet]) -> Packet:
-        #check if completly empty after this
-        if not previous_layer_class and not next_layer_class:
+    def remove_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
+        layer_copy = packet[layer_class]
+        # check if this is the last remaining layer which is now removed
+        if not layer_copy.payload and not layer_copy.underlayer:
             return None
-            
-        if next_layer_class:
-            after_layer = packet[next_layer_class]
-        if previous_layer_class:
-            packet[previous_layer_class].remove_payload()
-            if next_layer_class:
+
+        if layer_copy.payload:
+            after_layer = layer_copy.payload
+            after_layer.underlayer = None
+        if layer_copy.underlayer:
+            packet[layer_class].underlayer.remove_payload()
+            if layer_copy.payload:
                 packet /= after_layer
         else:
             packet = after_layer
-        
-        return packet   
+
+        return packet
     
     def preprocess_DNS_messages(self, packet: Packet, message_type: str) -> None:
         message = getattr(packet[DNS], message_type)
@@ -206,7 +202,7 @@ class PacketProcessor(ABC):
         setattr(packet[DNS], message_type, new_message)
 
     
-    def preprocess_layer(self, packet: Packet, layer_class: Type[Packet], previous_layer_class: Type[Packet], next_layer_class: Type[Packet]) -> Packet:
+    def preprocess_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
         layer_copy = packet[layer_class]
         if layer_class == IP:
             new_layer = custom_IP(
@@ -215,7 +211,6 @@ class PacketProcessor(ABC):
                 ttl=layer_copy.ttl,
                 flags=layer_copy.flags,
                 proto=layer_copy.proto)
-            new_layer_class = custom_IP
 
         elif layer_class == IPv6:
             new_layer = custom_IPv6(
@@ -224,18 +219,15 @@ class PacketProcessor(ABC):
                 nh = layer_copy.nh,
                 hlim = layer_copy.hlim,
             )
-            new_layer_class = custom_IPv6
         
         elif layer_class == TCP:
             new_layer = custom_TCP(
                 flags=layer_copy.flags, 
                 options=layer_copy.options
                 )
-            new_layer_class = custom_TCP
 
         elif layer_class == UDP:
             new_layer = custom_UDP()
-            new_layer_class = custom_UDP
 
         elif layer_class == HTTPRequest:
             new_layer = custom_HTTP_Request(
@@ -249,7 +241,6 @@ class PacketProcessor(ABC):
                 Cookie = layer_copy.Cookie,
                 TE = layer_copy.TE
                 )
-            new_layer_class = custom_HTTP_Request
 
         elif layer_class == HTTPResponse:
             new_layer = custom_HTTP_Response(
@@ -260,7 +251,6 @@ class PacketProcessor(ABC):
                 Content_Encoding = layer_copy.Content_Encoding,
                 Set_Cookie = layer_copy.Set_Cookie,
                 )
-            new_layer_class = custom_HTTP_Response
                 
         elif layer_class == DNS:
             if packet[DNS].qd:
@@ -290,21 +280,23 @@ class PacketProcessor(ABC):
                 ns = layer_copy.ns,
                 ar = layer_copy.ar
             )
-            new_layer_class = custom_DNS
         
         else:
-            return packet, layer_class
+            return packet
 
-        if next_layer_class:
-            after_layer = packet[next_layer_class]
+        after_layer = layer_copy.payload
+        before_layer = layer_copy.underlayer
+        
+        if after_layer:
             new_layer /= after_layer
-        if previous_layer_class:
-            packet[previous_layer_class].remove_payload()
+
+        if before_layer:
+            packet[layer_class].underlayer.remove_payload()
             packet /= new_layer
         else:
             packet = new_layer
         
-        return packet, new_layer_class
+        return packet
 
     def __exit__(self, exc_type, exc_value, tracback) -> None:
         pass
