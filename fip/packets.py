@@ -57,6 +57,11 @@ class PacketProcessor(ABC):
         wrpcap(f'{self.filename}_converted.pcap', self.packets, append=True)
 
     def read_packets(self, file) -> str:
+        if self.preprocessing_type == "none":
+            # adress mapping will save generated addresses to ensure
+            # that input addresses map to the same output address within a flow
+            self.adress_mapping = {}
+        
         pcap = rdpcap(filename=file)
         packets = []
         for pkt in pcap:
@@ -88,8 +93,71 @@ class PacketProcessor(ABC):
                 return packet[Raw]
             else:
                 return None
-
+        else:
+            packet = self.randomize_IP_and_MAC(packet)
+        
         return packet
+    
+    def randomize_IP_and_MAC(self, packet: Packet):
+        processed_packet = packet
+        if processed_packet.haslayer(Ether):
+            previous_src = processed_packet[Ether].src
+            previous_dst = processed_packet[Ether].dst
+            
+            if previous_src in self.adress_mapping:
+                new_src = self.adress_mapping[previous_src]
+            else:
+                new_src = RandMAC()._fix()
+                self.adress_mapping[previous_src] = new_src
+            
+            if previous_dst in self.adress_mapping:
+                new_dst = self.adress_mapping[previous_dst]
+            else:
+                new_dst = RandMAC()._fix()
+                self.adress_mapping[previous_dst] = new_dst
+            
+            processed_packet[Ether].src = new_src
+            processed_packet[Ether].dst = new_dst
+        
+        if processed_packet.haslayer(IP):
+            previous_src = processed_packet[IP].src
+            previous_dst = processed_packet[IP].dst
+            
+            if previous_src in self.adress_mapping:
+                new_src = self.adress_mapping[previous_src]
+            else:
+                new_src = RandIP()._fix()
+                self.adress_mapping[previous_src] = new_src
+            
+            if previous_dst in self.adress_mapping:
+                new_dst = self.adress_mapping[previous_dst]
+            else:
+                new_dst = RandIP()._fix()
+                self.adress_mapping[previous_dst] = new_dst
+
+            processed_packet[IP].src = new_src
+            processed_packet[IP].dst = new_dst
+        
+        if processed_packet.haslayer(IPv6):
+            previous_src = processed_packet[IPv6].src
+            previous_dst = processed_packet[IPv6].dst
+            
+            if previous_src in self.adress_mapping:
+                new_src = self.adress_mapping[previous_src]
+            else:
+                new_src = RandIP()._fix()
+                self.adress_mapping[previous_src] = new_src
+            
+            if previous_dst in self.adress_mapping:
+                new_dst = self.adress_mapping[previous_dst]
+            else:
+                new_dst = RandIP()._fix()
+                self.adress_mapping[previous_dst] = new_dst
+
+            processed_packet[IPv6].src = new_src
+            processed_packet[IPv6].dst = new_dst
+
+        return processed_packet
 
     def remove_layer(self, packet: Packet, layer_class: Type[Packet], previous_layer_class: Type[Packet], next_layer_class: Type[Packet]) -> Packet:
         #check if completly empty after this
@@ -105,8 +173,7 @@ class PacketProcessor(ABC):
         else:
             packet = after_layer
         
-        return packet
-            
+        return packet   
     
     def preprocess_DNS_messages(self, packet: Packet, message_type: str) -> None:
         message = getattr(packet[DNS], message_type)
