@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 
-from scapy.all import DNS, IP, UDP, IPv6, Ether, Packet, wrpcap, rdpcap, RandIP, RandMAC, TCP, Raw
+from scapy.all import DNS, IP, UDP, IPv6, Ether, Packet, wrpcap, rdpcap, RandIP, RandIP6, RandMAC, TCP, Raw
 from typing import Type
 from scapy.layers.http import HTTPRequest, HTTPResponse
 
@@ -139,13 +139,13 @@ class PacketProcessor(ABC):
             if previous_src in self.adress_mapping:
                 new_src = self.adress_mapping[previous_src]
             else:
-                new_src = RandIP()._fix()
+                new_src = RandIP6()._fix()
                 self.adress_mapping[previous_src] = new_src
             
             if previous_dst in self.adress_mapping:
                 new_dst = self.adress_mapping[previous_dst]
             else:
-                new_dst = RandIP()._fix()
+                new_dst = RandIP6()._fix()
                 self.adress_mapping[previous_dst] = new_dst
 
             processed_packet[IPv6].src = new_src
