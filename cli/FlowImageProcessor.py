@@ -42,6 +42,14 @@ def cli():
     help="Minimum dim ouput images need to have, 0=No minimum dim"
 )
 @click.option(
+    "-maxid",
+    "--max_im_dim",
+    "max_image_dim",
+    type=int,
+    default = 0,
+    help="Maximum dim ouput images can have, 0=No maximum dim"
+)
+@click.option(
     "-mp",
     "--min_packets",
     "min_packets_per_flow",
@@ -50,6 +58,6 @@ def cli():
     help="Minimum packets that a FlowImage needs to have, 0=No minimum packets per flow"
 )
 @cli.command(name="extract")
-def extract(input_dir, output_dir, preprocessing_type, min_image_dim, min_packets_per_flow):
+def extract(input_dir, output_dir, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow):
     runner = Runner(7)
-    runner.run(input_dir, output_dir, preprocessing_type, min_image_dim, min_packets_per_flow, width=128, append=False, tiled=True)
+    runner.run(input_dir, output_dir, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, width=128, append=False, tiled=True)

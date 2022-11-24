@@ -14,7 +14,7 @@ class Runner():
     def __init__(self, thread_number) -> None:
         self.thread_number = thread_number
 
-    def create_image(self, filename, output_dir, pbar, preprocessing_type, min_image_dim, min_packets_per_flow, width: str, append: bool, tiled: bool):
+    def create_image(self, filename, output_dir, pbar, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, width: str, append: bool, tiled: bool):
         if preprocessing_type not in ["payload", "header"]:
             preprocessing_type = "none"
         with PacketProcessor(dir=filename, preprocessing_type=preprocessing_type) as result:
@@ -30,19 +30,22 @@ class Runner():
                 if flow_image.shape[0] < min_image_dim or flow_image.shape[1] < min_image_dim:
                     pbar.update(1)
                     continue
+                elif max_image_dim != 0 and (max_image_dim < flow_image.shape[0] or max_image_dim < flow_image.shape[1]):
+                    pbar.update(1)
+                    continue
                 im = PILImage.fromarray(image["matrix"])
                 if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
                 im.save(f'{output_dir}/{pkt.file}_processed.png')
                 pbar.update(1)
 
-    def start_process(self, file_queue, pbar, preprocessing_type, min_image_dim, min_packets_per_flow, *args):
+    def start_process(self, file_queue, pbar, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, *args):
         while not file_queue.empty():
             filename, output_dir = file_queue.get()
-            self.create_image(filename, output_dir, pbar, preprocessing_type, min_image_dim, min_packets_per_flow, *args)
+            self.create_image(filename, output_dir, pbar, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, *args)
             file_queue.task_done()
 
-    def run(self, input_dir, output_dir, preprocessing_type, min_image_dim, min_packets_per_flow, **kwargs):
+    def run(self, input_dir, output_dir, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, **kwargs):
         # Get all executable files in input directory and add them into queue
         file_queue = Queue()
         folders = [f for f in glob.glob(input_dir + "**/", recursive=True)]
@@ -55,7 +58,7 @@ class Runner():
         pbar = tqdm(total=len(files))
         for _ in range(self.thread_number):
             thread = Thread(target=self.start_process, args=(
-                file_queue, pbar, preprocessing_type, min_image_dim, min_packets_per_flow, kwargs['width'],  kwargs['append'], kwargs['tiled']))
+                file_queue, pbar, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, kwargs['width'],  kwargs['append'], kwargs['tiled']))
             thread.daemon = True
             thread.start()
 
