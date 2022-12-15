@@ -76,11 +76,16 @@ class PacketProcessor(ABC):
             layers = packet.layers()
             if len([layer for layer in layers if layer in headers]) == 0:
                 return None
+            new_packet = None
             for layer_class in layers:
                 if layer_class in headers:
-                    packet = self.preprocess_layer(packet, layer_class)
-                else:
-                    packet = self.remove_layer(packet, layer_class)
+                    new_layer = self.preprocess_layer(packet, layer_class)
+                    if not new_packet:
+                        new_packet = new_layer
+                    else:
+                        new_packet /= new_layer
+
+            return new_packet
 
         elif self.preprocessing_type == "payload":
             if packet.haslayer(Raw):
@@ -152,24 +157,6 @@ class PacketProcessor(ABC):
             processed_packet[IPv6].dst = new_dst
 
         return processed_packet
-
-    def remove_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
-        layer_copy = packet[layer_class]
-        # check if this is the last remaining layer which is now removed
-        if not layer_copy.payload and not layer_copy.underlayer:
-            return None
-
-        if layer_copy.payload:
-            after_layer = layer_copy.payload
-            after_layer.underlayer = None
-        if layer_copy.underlayer:
-            packet[layer_class].underlayer.remove_payload()
-            if layer_copy.payload:
-                packet /= after_layer
-        else:
-            packet = after_layer
-
-        return packet
     
     def preprocess_DNS_messages(self, packet: Packet, message_type: str) -> None:
         message = getattr(packet[DNS], message_type)
@@ -281,22 +268,10 @@ class PacketProcessor(ABC):
                 ar = layer_copy.ar
             )
         
-        else:
-            return packet
-
-        after_layer = layer_copy.payload
-        before_layer = layer_copy.underlayer
+        elif layer_class == Raw:
+            return layer_copy
         
-        if after_layer:
-            new_layer /= after_layer
-
-        if before_layer:
-            packet[layer_class].underlayer.remove_payload()
-            packet /= new_layer
-        else:
-            packet = new_layer
-        
-        return packet
+        return new_layer
 
     def __exit__(self, exc_type, exc_value, tracback) -> None:
         pass
