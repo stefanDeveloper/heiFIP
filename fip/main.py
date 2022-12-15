@@ -41,8 +41,10 @@ class Runner():
                     if im_str in images_created:
                         pbar.update(1)
                         continue
+                    else:
+                         images_created.append(im_str)
 
-                images_created.append(im_str)
+               
                 im = PILImage.fromarray(image["matrix"])
                 if not os.path.exists(output_dir):
                     os.makedirs(output_dir)
