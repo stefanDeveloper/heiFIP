@@ -27,12 +27,21 @@ def cli():
 )
 @click.option("-r", "--read", "input_dir", type=click.Path())
 @click.option(
+    "-t",
+    "--threads",
+    "num_threads",
+    type=int,
+    default=1,
+    help="Number of parallel threads that can be used"
+    )
+@click.option(
     "-p",
     "--preprocess",
     "preprocessing_type",
     type=click.STRING,
     default="none",
-    help="Applies a preprocessing to the input data:\n none: No preprocessing\n payload: Only payload data is used\n header: Preprocesses headers (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove some biasing data")
+    help="Applies a preprocessing to the input data:\n none: No preprocessing\n payload: Only payload data is used\n header: Preprocesses headers (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove some biasing data"
+    )
 @click.option(
     "-mid",
     "--min_im_dim",
@@ -57,7 +66,15 @@ def cli():
     default =  0,
     help="Minimum packets that a FlowImage needs to have, 0=No minimum packets per flow"
 )
+@click.option(
+    "-rd",
+    "--remove_duplicates",
+    "remove_duplicates",
+    is_flag = True,
+    default = False,
+    help="Within a single output folder belonging to a single input folder no duplicate images will be produced if two inputs lead to the same image"
+)
 @cli.command(name="extract")
-def extract(input_dir, output_dir, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow):
-    runner = Runner(7)
-    runner.run(input_dir, output_dir, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, width=128, append=False, tiled=True)
+def extract(input_dir, output_dir, num_threads, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, remove_duplicates):
+    runner = Runner(num_threads)
+    runner.run(input_dir, output_dir, preprocessing_type, min_image_dim, max_image_dim, min_packets_per_flow, remove_duplicates, width=128, append=False, tiled=True)
