@@ -15,7 +15,8 @@ class Runner():
         self.thread_number = thread_number
 
     def create_image(self, filename, output_dir, pbar, preprocessing_type: str, min_image_dim: int, max_image_dim: int, min_packets_per_flow: int, remove_duplicates: bool, width: str, append: bool, tiled: bool):
-        images_created = []
+        if remove_duplicates:
+            images_created = []
         if preprocessing_type not in ["payload", "header"]:
             preprocessing_type = "none"
         with PacketProcessor(dir=filename, preprocessing_type=preprocessing_type) as result:
@@ -35,10 +36,11 @@ class Runner():
                 elif max_image_dim != 0 and (max_image_dim < flow_image.shape[0] or max_image_dim < flow_image.shape[1]):
                     pbar.update(1)
                     continue
-                im_str = flow_image.tobytes()
-                if im_str in images_created:
-                    pbar.update(1)
-                    continue
+                if remove_duplicates:
+                    im_str = flow_image.tobytes()
+                    if im_str in images_created:
+                        pbar.update(1)
+                        continue
 
                 images_created.append(im_str)
                 im = PILImage.fromarray(image["matrix"])
