@@ -237,6 +237,7 @@ class PacketProcessor(ABC):
                 Connection = layer_copy.Connection,
                 Content_Encoding = layer_copy.Content_Encoding,
                 Set_Cookie = layer_copy.Set_Cookie,
+                Transfer_Encoding = layer_copy.Transfer_Encoding
                 )
                 
         elif layer_class == DNS:

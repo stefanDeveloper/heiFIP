@@ -79,7 +79,8 @@ class custom_HTTP_Response(custom_HTTP):
         StrField("Content_Encoding", None),
         StrField("Content_Type", None),
         StrField("Server", None),
-        StrField("Set_Cookie", None)
+        StrField("Set_Cookie", None),
+        StrField("Transfer_Encoding", None)
     ]
 
 class custom_DNSQR(InheritOriginDNSStrPacket):
