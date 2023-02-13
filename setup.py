@@ -30,6 +30,8 @@ setup(
         "scapy==2.4.5",
         "image==1.5.33",
         "numpy==1.23.1",
+        "click==8.1.3",
+        "tqdm==4.64.1"
     ],
     extras_require={
         "cli": ["click==8.0.3", "click-help-colors==0.9.1"],
