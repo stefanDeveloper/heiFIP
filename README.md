@@ -1,8 +1,15 @@
-# Flow Image Processor
+# heiFIP (Flow Image Processor)
 
-> Flow Image Processor converts PCAP files into images
+Flow Image Processor extracts essential parts of packets from all layers (IPv4, IPv6, TCP, UDP, HTTP, DNS) and converts it into images:
 
-```
+![SMB Connection](./examples/SMB.png?raw=true "SMB Vonnection")
+
+
+## Getting Started
+
+```sh
+# Show help information
+>fip -h
 Starting FlowImageProcessor CLI
 Usage: fip extract [OPTIONS]
 
@@ -27,14 +34,8 @@ Options:
   -w, --write PATH              Destination file path, stores result
                                 [required]
   -h, --help                    Show this message and exit.
+
+> fip extract -r /PATH/PCAPs -w /PATH/IMAGES
 ```
 
-# Getting Started
-
-```sh
-# Show information
-fip -h
-
-# Convert PCAP to image
-fip extract -r /PATH/PCAPs -w /PATH/IMAGES
-```
+## Citation
