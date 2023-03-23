@@ -2,7 +2,7 @@
 [![PyPI version](https://badge.fury.io/py/heifip.svg)](https://badge.fury.io/py/heifip)
 [![Downloads](https://pepy.tech/badge/heifip)](https://pepy.tech/project/heifip)
 
-![heiFIP Logo](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/master/assets/heiFIP_logo.png?raw=true)
+![heiFIP Logo](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/assets/heiFIP_logo.png?raw=true)
 
 
 --------------------------------------------------------------------------------
