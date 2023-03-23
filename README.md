@@ -7,12 +7,87 @@
 
 --------------------------------------------------------------------------------
 
-heiFIP (flow image processor) extracts essential parts of packets from all layers (IPv4, IPv6, TCP, UDP, HTTP, DNS) and converts it into an images:
+**heiFIP** stands for Heidelberg flow image processor. It extracts essential parts of packets and converts it into an images, such as:
 
 ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/master/examples/SMB.png?raw=true "SMB Vonnection")
 
+<table>
+<tr>
+  <td><b>Live Notebook</b></td>
+  <td>
+    <a href="https://mybinder.org/v2/gh/heifip/heifip-tutorials/main?filepath=demo_notebook.ipynb">
+    <img src="https://img.shields.io/badge/notebook-launch-blue?logo=jupyter&style=for-the-badge" alt="live notebook" />
+    </a>
+  </td>
+</tr>
+<tr>
+  <td><b>Latest Release</b></td>
+  <td>
+    <a href="https://pypi.python.org/pypi/heifip">
+    <img src="https://img.shields.io/pypi/v/heifip.svg?logo=pypi&style=for-the-badge" alt="latest release" />
+    </a>
+  </td>
+</tr>
+
+<tr>
+  <td><b>Supported Versions</b></td>
+  <td>
+    <a href="https://pypi.org/project/heifip/">
+    <img src="https://img.shields.io/pypi/pyversions/heifip?logo=python&style=for-the-badge" alt="python3" />
+    </a>
+    <a href="https://pypi.org/project/heifip/">
+    <img src="https://img.shields.io/badge/pypy-3.7%20%7C%203.8%20%7C%203.9-blue?logo=pypy&style=for-the-badge" alt="pypy3" />
+    </a>
+  </td>
+</tr>
+<tr>
+  <td><b>Project License</b></td>
+  <td>
+    <a href="https://github.com/stefanDeveloper/heifip/blob/main/LICENSE">
+    <img src="https://img.shields.io/pypi/l/heifip?logo=gnu&style=for-the-badge&color=blue" alt="License" />
+    </a>
+  </td>
+</tr>
+<tr>
+  <td><b>Continuous Integration</b></td>
+  <td>
+    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_linux.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_linux.yml?branch=master&logo=linux&style=for-the-badge&label=linux" alt="Linux WorkFlows" />
+    </a>
+    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_macos.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_macos.yml?branch=master&logo=apple&style=for-the-badge&label=macos" alt="MacOS WorkFlows" />
+    </a>
+    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_windows.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_windows.yml?branch=master&logo=windows&style=for-the-badge&label=windows" alt="Windows WorkFlows" />
+    </a>
+    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_aarch64.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_aarch64.yml?branch=master&logo=arm&style=for-the-badge&label=arm64" alt="ARM64 WorkFlows" />
+    </a>
+    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_armhf.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_armhf.yml?branch=master&logo=arm&style=for-the-badge&label=arm32" alt="ARM32 WorkFlows" />
+    </a>
+  </td>
+</tr>
+</table>
+
+## Table of Contents
+
+- [**Main Features**](#main-features)
+- [**Getting Started**](#getting-started)
+- [**Citation**](#citation)
+- [**Credits**](#credits)
+- [**License**](#license)
+
+## Main Features
 
 ## Getting Started
+
+Install our package using PyPi
+
+```sh
+pip install heifip
+```
+
 
 ```sh
 # Show help information
@@ -45,4 +120,12 @@ Options:
 > fip extract -r /PATH/PCAPs -w /PATH/IMAGES
 ```
 
-## Citation
+## Credits
+
+- [NFStream]() for the inspiration of the `README.md` and workflow testing.
+
+## License
+
+This project is licensed under the  EUPL-1.2 [**License**](license) - see the License file for details
+
+[license]: https://github.com/stefanDeveloper/heiFIP/blob/main/LICENSE
