@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fip"
+name = "heifip"
 version = "0.0.1"
 authors = [
   { name="Stefan Machmeier", email="stefan.machmeier@uni-heidelberg.de" },
