@@ -2,13 +2,14 @@
 [![PyPI version](https://badge.fury.io/py/heifip.svg)](https://badge.fury.io/py/heifip)
 [![Downloads](https://pepy.tech/badge/heifip)](https://pepy.tech/project/heifip)
 
-![heiFIP logo](./assets/heiFIP_logo.png)
+![heiFIP Logo](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/master/assets/heiFIP_logo.png?raw=true)
+
 
 --------------------------------------------------------------------------------
 
 heiFIP (flow image processor) extracts essential parts of packets from all layers (IPv4, IPv6, TCP, UDP, HTTP, DNS) and converts it into an images:
 
-![SMB Connection](./examples/SMB.png?raw=true "SMB Vonnection")
+![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/master/examples/SMB.png?raw=true "SMB Vonnection")
 
 
 ## Getting Started
