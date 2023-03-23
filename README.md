@@ -1,6 +1,12 @@
-# heiFIP (Flow Image Processor)
+[![heiFIP](https://github.com/stefanDeveloper/heiFIP/actions/workflows/python-app.yml/badge.svg)](https://github.com/stefanDeveloper/heiFIP/actions/workflows/python-app.yml)
+[![PyPI version](https://badge.fury.io/py/heifip.svg)](https://badge.fury.io/py/heifip)
+[![Downloads](https://pepy.tech/badge/heifip)](https://pepy.tech/project/heifip)
 
-Flow Image Processor extracts essential parts of packets from all layers (IPv4, IPv6, TCP, UDP, HTTP, DNS) and converts it into images:
+![heiFIP logo](./assets/heiFIP_logo.png)
+
+--------------------------------------------------------------------------------
+
+heiFIP (flow image processor) extracts essential parts of packets from all layers (IPv4, IPv6, TCP, UDP, HTTP, DNS) and converts it into an images:
 
 ![SMB Connection](./examples/SMB.png?raw=true "SMB Vonnection")
 
@@ -9,7 +15,7 @@ Flow Image Processor extracts essential parts of packets from all layers (IPv4, 
 
 ```sh
 # Show help information
->fip -h
+> fip extract -h
 Starting FlowImageProcessor CLI
 Usage: fip extract [OPTIONS]
 
