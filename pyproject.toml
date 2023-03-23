@@ -3,12 +3,12 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "flow_image_processor"
+name = "fip"
 version = "0.0.1"
 authors = [
   { name="Stefan Machmeier", email="stefan.machmeier@uni-heidelberg.de" },
 ]
-description = "A small example package"
+description = "A tool to convert network traffic into images for ML use cases "
 readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.9"
@@ -22,5 +22,5 @@ classifiers = [
 fip = "cli.FlowImageProcessor:cli"
 
 [project.urls]
-"Homepage" = "https://github.com/stefanDeveloper/flow-image-processor"
-"Bug Tracker" = "https://github.com/stefanDeveloper/flow-image-processor/issues"
+"Homepage" = "https://github.com/stefanDeveloper/heiFIP"
+"Bug Tracker" = "https://github.com/stefanDeveloper/heiFIP/issues"

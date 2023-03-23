@@ -1,6 +1,6 @@
 [![heiFIP](https://github.com/stefanDeveloper/heiFIP/actions/workflows/python-app.yml/badge.svg)](https://github.com/stefanDeveloper/heiFIP/actions/workflows/python-app.yml)
-[![PyPI version](https://badge.fury.io/py/heifip.svg)](https://badge.fury.io/py/heifip)
-[![Downloads](https://pepy.tech/badge/heifip)](https://pepy.tech/project/heifip)
+[![PyPI version](https://badge.fury.io/py/flow-image-processor.svg)](https://badge.fury.io/py/flow-image-processor)
+[![Downloads](https://pepy.tech/badge/flow-image-processor)](https://pepy.tech/project/flow-image-processor)
 
 ![heiFIP Logo](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/assets/heiFIP_logo.png?raw=true)
 
