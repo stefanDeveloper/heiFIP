@@ -120,6 +120,18 @@ Options:
 > fip extract -r /PATH/PCAPs -w /PATH/IMAGES
 ```
 
+## Citation
+
+```latex
+@software{Stefan_heiFIP_A_network_2023,
+  author = {Stefan, Machmeier},
+  month = {1},
+  title = {{heiFIP: A network traffic image converter}},
+  version = {1.0.0},
+  year = {2023}
+}
+```
+
 ## Credits
 
 - [NFStream]() for the inspiration of the `README.md` and workflow testing.

@@ -16,7 +16,7 @@ setup(
     version=__version__,
     description="A useful module to create packet flows into images",
     author="Stefan Machmeier",
-    python_requires=">=3.9",
+    python_requires=">=3.7",
     author_email="stefan.machmeier@uni-heidelberg.de",
     maintainer="Stefan Machmeier",
     url="https://gitlab.urz.uni-heidelberg.de/it-sec/schwachstellenmanagement",
