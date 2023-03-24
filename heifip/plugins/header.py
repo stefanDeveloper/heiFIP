@@ -1,11 +1,10 @@
-from scapy.all import DNSQRField, DNSRRField, ShortEnumField, IntField, Packet, BitField, BitEnumField, FlagsField, XByteField, ByteField, ByteEnumField, StrField, IP_PROTOS, TCPOptionsField
+from scapy.all import DNSQRField, DNSRRField, ShortEnumField, IntField, Packet, BitField, BitEnumField, FlagsField, XByteField, ByteField, ByteEnumField, StrField, IP_PROTOS, TCPOptionsField, IntField
 from scapy.layers.inet6 import  ipv6nh
 from scapy.all import IP, IPv6, DNS, TCP, UDP
 from scapy.layers.http import HTTPRequest, HTTPResponse
 from scapy.layers.dns import DNSStrField, dnstypes, InheritOriginDNSStrPacket
-SUPPORTED_HEADERS = [IP, IPv6, DNS, HTTPRequest, HTTPResponse, TCP, UDP]
 
-class custom_IP(Packet):
+class CustomIP(Packet):
     name = "IP"
     fields_desc = [
         BitField("version", 4, 4),
@@ -15,7 +14,7 @@ class custom_IP(Packet):
         ByteEnumField("proto", 0, IP_PROTOS),
         ]
 
-class custom_IPv6(Packet):
+class CustomIPv6(Packet):
     name = "IPv6"
     fields_desc = [
         BitField("version", 6, 8), # normally 4 bits, last 4bits will always be 0
@@ -24,18 +23,18 @@ class custom_IPv6(Packet):
         ByteField("hlim", 64)
     ]
 
-class custom_TCP(Packet):
+class CustomTCP(Packet):
     name = "TCP"
     fields_desc = [
         FlagsField("flags", 0x2, 16, "FSRPAUECN"),
         TCPOptionsField("options", "")
     ]
 
-class custom_UDP(Packet):
+class CustomUDP(Packet):
     name = "UDP"
     fields_desc = []
 
-class custom_HTTP(Packet):
+class CustomHTTP(Packet):
     def self_build(self):
         p = b""
 
@@ -56,7 +55,7 @@ class custom_HTTP(Packet):
         return p
 
 
-class custom_HTTP_Request(custom_HTTP):
+class CustomHTTP_Request(CustomHTTP):
     name = "HTTP Request"
     fields_desc = [
         StrField("Method", "GET"),
@@ -71,7 +70,7 @@ class custom_HTTP_Request(custom_HTTP):
         StrField("TE", None)
     ]
 
-class custom_HTTP_Response(custom_HTTP):
+class CustomHTTP_Response(CustomHTTP):
     name = "HTTP Response"
     fields_desc = [
         StrField("Status_Code", "200"),
@@ -83,7 +82,7 @@ class custom_HTTP_Response(custom_HTTP):
         StrField("Transfer_Encoding", None)
     ]
 
-class custom_DNSQR(InheritOriginDNSStrPacket):
+class CustomDNSQR(InheritOriginDNSStrPacket):
     name = "DNS Question Record"
     show_indent = 0 
     fields_desc = [
@@ -91,7 +90,7 @@ class custom_DNSQR(InheritOriginDNSStrPacket):
         ShortEnumField("qtype", 1, dnstypes)
     ]
 
-class custom_DNSRR(InheritOriginDNSStrPacket):
+class CustomDNSRR(InheritOriginDNSStrPacket):
     name = "DNS Resource Record"
     show_indent = 0
     fields_desc = [
@@ -100,7 +99,7 @@ class custom_DNSRR(InheritOriginDNSStrPacket):
         IntField("ttl", 0)
     ]
 
-class custom_DNS(Packet):
+class CustomDNS(Packet):
     name = "DNS"
     fields_desc = [
         BitField("qr", 0, 1),

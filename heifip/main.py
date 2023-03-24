@@ -3,9 +3,9 @@ import os
 from queue import Queue
 from threading import Thread
 from PIL import Image as PILImage
-from fip.image import FlowImage
+from images.flow import FlowImage
 
-from fip.packets import PacketProcessor
+from layers import PacketProcessor
 from tqdm import tqdm
 
 
@@ -17,8 +17,7 @@ class Runner():
     def create_image(self, filename, output_dir, pbar, preprocessing_type: str, min_image_dim: int, max_image_dim: int, min_packets_per_flow: int, remove_duplicates: bool, width: str, append: bool, tiled: bool):
         if remove_duplicates:
             images_created = []
-        if preprocessing_type not in ["payload", "header"]:
-            preprocessing_type = "none"
+
         with PacketProcessor(dir=filename, preprocessing_type=preprocessing_type) as result:
             for pkt in result:
                 # when no file matches the preprocessing
