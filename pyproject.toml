@@ -1,3 +1,7 @@
+[build-system]
+requires = [ "setuptools>=62.0.0" ]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "heifip"
 version = "0.0.1"
@@ -8,15 +12,41 @@ description = "A tool to convert network traffic into images for ML use cases "
 readme = "README.md"
 license = { file="LICENSE" }
 requires-python = ">=3.7"
+keywords = [ "network" ]
 classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: European Union Public Licence 1.2 (EUPL 1.2)",
     "Operating System :: OS Independent",
+    "Operating System :: OS Independent",
+    'Intended Audience :: Telecommunications Industry',
+    'Intended Audience :: Information Technology',
+    'Intended Audience :: System Administrators',
+    'Intended Audience :: Science/Research',
+    'Intended Audience :: Developers',
+    'Programming Language :: Python :: 3 :: Only',
+    'Programming Language :: Python :: 3.7',
+    'Programming Language :: Python :: 3.8',
+    'Programming Language :: Python :: 3.9',
+    'Programming Language :: Python :: 3.10',
+    'Programming Language :: Python :: 3.11',
+    'Topic :: Security',
+    'Topic :: Internet :: Log Analysis',
+    'Topic :: System :: Networking :: Monitoring',
+    'Topic :: Scientific/Engineering :: Artificial Intelligence'
 ]
 
 [project.scripts]
-fip = "cli.FlowImageProcessor:cli"
+fip = "heifip.cli:cli"
 
 [project.urls]
 "Homepage" = "https://github.com/stefanDeveloper/heiFIP"
 "Bug Tracker" = "https://github.com/stefanDeveloper/heiFIP/issues"
+
+[tool.setuptools.packages.find]
+include = [
+    "heifip*",
+]
+exclude = [
+    "test*",
+    "assets*",
+]

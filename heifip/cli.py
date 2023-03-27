@@ -5,8 +5,9 @@ except ImportError:
         "Please install Python dependencies: " "click, colorama (optional)."
     )
 
-from .extractor import FIPExtractor
+from .main import Runner
 from . import __version__, CONTEXT_SETTINGS
+from .layers import PacketProcessorType
 
 
 @click.version_option(version=__version__)
@@ -29,15 +30,17 @@ def cli():
     "--threads",
     "num_threads",
     type=int,
-    default=1,
+    default=16,
     help="Number of parallel threads that can be used",
 )
 @click.option(
     "-p",
     "--preprocess",
     "preprocessing_type",
-    default="none",
-    type=click.Choice(["none", "header", "payload"], case_sensitive=False),
+    default="NONE",
+    type=click.Choice(
+        list(map(lambda x: x.name, PacketProcessorType)), case_sensitive=False
+    ),
     help="Applies a preprocessing to the input data:\n none: No preprocessing\n payload: Only payload data is used\n header: Preprocesses headers (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove some biasing data",
 )
 @click.option(
@@ -83,17 +86,16 @@ def extract(
     min_packets_per_flow,
     remove_duplicates,
 ):
-    # runner = Runner(num_threads)
-    # runner.run(
-    #     input_dir,
-    #     output_dir,
-    #     preprocessing_type,
-    #     min_image_dim,
-    #     max_image_dim,
-    #     min_packets_per_flow,
-    #     remove_duplicates,
-    #     width=128,
-    #     append=False,
-    #     tiled=True,
-    # )
-    pass
+    runner = Runner(num_threads)
+    runner.run(
+        input_dir,
+        output_dir,
+        preprocessing_type,
+        min_image_dim,
+        max_image_dim,
+        min_packets_per_flow,
+        remove_duplicates,
+        width=128,
+        append=False,
+        tiled=True,
+    )

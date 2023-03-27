@@ -56,4 +56,4 @@ jobs:
         run: |
            python3 -m pip install --upgrade pip
            python3 -m pip install twine
-           python3 -m twine upload --skip-existing ./wheelhouse/nfstream-*.whl
+           python3 -m twine upload --skip-existing ./wheelhouse/heifip-*.whl

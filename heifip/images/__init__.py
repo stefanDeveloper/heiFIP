@@ -14,6 +14,3 @@ class NetworkTrafficImage(ABC):
     def __init__(self, fill=0, dim=8) -> None:
         self.fill = fill
         self.dim = dim
-
-    def __getitem__(self, i):
-        return self.__dict__[i]

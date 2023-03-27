@@ -3,11 +3,13 @@ from scapy.all import Packet, raw
 import binascii
 import logging
 
+from . import NetworkTrafficImage
+
 
 class FlowImage(NetworkTrafficImage):
     def __init__(
         self,
-        packets: list[Packet],
+        packets,
         width=128,
         dim=8,
         fill=0,
@@ -16,6 +18,7 @@ class FlowImage(NetworkTrafficImage):
         append=False,
     ) -> None:
         self.width = width
+        self.packets = packets
         self.auto_dim = auto_dim
         self.fill = fill
         self.dim = dim
@@ -68,7 +71,7 @@ class FlowImage(NetworkTrafficImage):
         binaries = []
         for packet in self.packets:
             # get Hex data
-            hexst = binascii.hexlify(raw(packet))
+            hexst = binascii.hexlify(raw(packet.packet))
             # Append octet as integer
             binaries.append(
                 [int(hexst[i : i + 2], 16) for i in range(0, len(hexst), 2)]
@@ -100,7 +103,7 @@ class FlowImage(NetworkTrafficImage):
         binaries = []
         for packet in self.packets:
             # get Hex data
-            hexst = binascii.hexlify(raw(packet))
+            hexst = binascii.hexlify(raw(packet.packet))
             # Append octet as integer
             binaries.append(
                 [int(hexst[i : i + 2], 16) for i in range(0, len(hexst), 2)]

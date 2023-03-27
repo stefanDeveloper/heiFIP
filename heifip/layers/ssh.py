@@ -1,13 +1,6 @@
-from tcp import TCPPacketProcessor
+from .transport import TransportPacket
+from scapy.all import Packet
 
-class SSHPacketProcessor(TCPPacketProcessor):
-    def __init__(self, dir) -> None:
-        PacketProcessor.__init__(self, dir)
-
-    def preprocessing(self, packet: Packet)-> Packet:
-        processed_packet = packet
-
-        return processed_packet
-
-    def __enter__(self):
-        return self
+class SSHPacketProcessor(TransportPacket):
+    def __init__(self, packet: Packet):
+        TransportPacket.__init__(self, packet)
