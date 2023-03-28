@@ -13,8 +13,7 @@ class FIPExtractor:
 
     def create_image(
             self,
-            input_dir: str,
-            output_dir: str,
+            input_file: str,
             preprocessing_type: PacketProcessorType = PacketProcessorType.NONE,
             min_image_dim: int = 0,
             max_image_dim: int = 0,
@@ -24,9 +23,9 @@ class FIPExtractor:
             append: bool=False,
             tiled: bool=True):
 
-        # assert os.path.isfile(input_dir)
+        assert os.path.isfile(input_file)
 
-        packets = self.processor.read_packets(input_dir, preprocessing_type)
+        packets = self.processor.read_packets(input_file, preprocessing_type)
 
         # when no file matches the preprocessing
         if len(packets) == 0 or len(packets) < min_packets_per_flow:
