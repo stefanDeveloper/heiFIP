@@ -100,7 +100,7 @@ class FlowImage(NetworkTrafficImage):
         fh = np.uint8(fh)
         return fh, binaries
 
-    def __get_matrix(self, append: bool, packets: list[Packet]):
+    def __get_matrix(self, append: bool, packets: [Packet]):
         binaries = []
         for packet in self.packets:
             # get Hex data
