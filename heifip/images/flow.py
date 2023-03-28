@@ -68,7 +68,7 @@ class FlowImage(NetworkTrafficImage):
         tiled = np.concatenate(rows)  # stitch rows
         return tiled
 
-    def __get_matrix_tiled(self, dim: int, auto_dim: bool, packets: list[Packet]):
+    def __get_matrix_tiled(self, dim: int, auto_dim: bool, packets: [Packet]):
         binaries = []
         for packet in self.packets:
             # get Hex data
