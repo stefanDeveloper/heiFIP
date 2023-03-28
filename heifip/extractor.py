@@ -49,7 +49,7 @@ class FIPExtractor:
 
         return PILImage.fromarray(image.matrix)
 
-    def save_image(self, img):
+    def save_image(self, img, output_dir):
         if not os.path.exists(realpath(dirname(output_dir))):
             os.makedirs(realpath(dirname(output_dir)))
         im.save(f"{output_dir}_processed.png")

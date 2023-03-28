@@ -4,8 +4,8 @@
 --------------------------------------------------------------------------------
 
 **heiFIP** stands for Heidelberg Flow Image Processor.
-It is a tool designed to extracts essential parts of packets and convert them into images for deep learning purposes.
-heiFIP supports differents formats and orientations.
+It is a tool designed to extract essential parts of packets and convert them into images for deep learning purposes.
+heiFIP supports different formats and orientations.
 Currently, we only support **offline** network data analysis.
 However, we plan to adapt our library to support **online** network data too to enable live-probing of models.
 
@@ -65,6 +65,7 @@ However, we plan to adapt our library to support **online** network data too to 
 ## Table of Contents
 
 - [**Main Features**](#main-features)
+- [**Motivation**](#motivation)
 - [**Examples**](#examples)
 - [**Getting Started**](#getting-started)
   - [**Building from source**](#building-from-source)
@@ -73,14 +74,30 @@ However, we plan to adapt our library to support **online** network data too to 
   - [**Authors**](#authors)
 - [**License**](#license)
 
+## Motivation
+
+The idea to create heiFIP rose while working with Deep Learning approaches for malware traffic classification.
+Many papers show image representation, however, there is currently no official library to support reproducible data.
+
 ## Main Features
 
-- **Header** extraction: tbd.
+- **Different Images**: Currently, we support plain packet to byte representation, and flow to byte representation with one channel each. An image is created with same width and height for a quadratic representation.
+  - **Flow Images** converts a set of packets into an image. It supports the following modifications:
+    - **Max images dimension** allows you to specify the maximum image dimension. If the packet is larger than the specified size, it will cut the remaining pixel.
+    - **Min image dimesion** allows you to specify the minimum image dimension. If the packet is smaller than the specified size, it fills the remaining pixel with 0.
+    - **Remove duplicates** allows you to automatically remove same traffic.
+    - **Append** each flow to each other or write each packet to a new row.
+    - **Max packets per flow** allows you to specify the maximum number of packets per flow.
+  - **Packet Image** converts a single packet into an image.
+  - **Bidrectional Images** converts a bidirectional communication to an image.
+- **Header** processing also you to customize header fields of different protocols. It aims to remove biasing fields.
   - **IPv4** and **IPv6**: tbd.
   - **TCP** and **UDP**: tbd.
   - **HTTP**: tbd.
   - **DNS**: tbd.
-- **Machine learning orientation**: heiFIP aims to make Deep Learning approaches using network data as images reproducible and deployable. Using heiFIP as a common framework enables researches to test and verify their models. 
+- **Remove Payload** options allows you to only work on header data.
+- **Fast and flexible**: We rely on [Scapy]() for our image generation and header processing.
+- **Machine learning orientation**: heiFIP aims to make Deep Learning approaches using network data as images reproducible and deployable. Using heiFIP as a common framework enables researches to test and verify their models.
 
 ## Examples
 
@@ -123,6 +140,14 @@ Options:
   -h, --help                    Show this message and exit.
 
 > fip extract -r /PATH/PCAPs -w /PATH/IMAGES
+```
+
+Import FIPExtractor to run it inside your program:
+
+```python
+extractor = FIPExtractor()
+img = extractor.create_image('./test/pcaps/dns/dns-binds.pcap')
+extractor.save_image(img, './test/pcaps/dns/dns-binds.pcap')
 ```
 
 ### Building from source
