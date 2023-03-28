@@ -1,26 +1,25 @@
-import glob
-import os
-from os.path import realpath
-from os.path import dirname
-import logging
+import asyncio
 import fnmatch
+import glob
+import logging
+import os
+from os.path import dirname, realpath
 from queue import Queue
 from threading import Thread
-from PIL import Image as PILImage
-import asyncio
-from .images.flow import FlowImage
 
-from .layers import PacketProcessor
+from PIL import Image as PILImage
 from tqdm import tqdm
+
+from heifip.extractor import FIPExtractor
+from heifip.images.flow import FlowImage
 
 
 class Runner:
     def __init__(self, thread_number) -> None:
         self.thread_number = thread_number
-        self.processor = PacketProcessor()
-        self.images_created = []
+        self.extractor = FIPExtractor()
 
-    async def create_image(
+    def create_image(
         self,
         filepath: str,
         output_dir: str,
@@ -34,41 +33,10 @@ class Runner:
         append: bool,
         tiled: bool,
     ):
-        packets = self.processor.read_packets(filepath, preprocessing_type)
-        # when no file matches the preprocessing
-        if len(packets) == 0 or len(packets) < min_packets_per_flow:
-            pbar.update(1)
-            return
-        image = FlowImage(
-            packets, width=width, append=append, tiled=tiled, auto_dim=True
-        )
-        flow_image = image.matrix
-
-        if (
-            flow_image.shape[0] < min_image_dim
-            or flow_image.shape[1] < min_image_dim
-        ):
-            pbar.update(1)
-            return
-        elif max_image_dim != 0 and (
-            max_image_dim < flow_image.shape[0]
-            or max_image_dim < flow_image.shape[1]
-        ):
-            pbar.update(1)
-            return
-        if remove_duplicates:
-            im_str = flow_image.tobytes()
-            if im_str in self.images_created:
-                pbar.update(1)
-                return
-            else:
-                self.images_created.append(im_str)
-
-        im = PILImage.fromarray(image.matrix)
-        if not os.path.exists(realpath(dirname(output_dir))):
-            os.makedirs(realpath(dirname(output_dir)))
-        im.save(f"{output_dir}_processed.png")
+        img = extractor.create_image()
         pbar.update(1)
+        if img != None:
+            extractor.save_image(img)
 
     def start_process(
         self,
@@ -107,16 +75,17 @@ class Runner:
         remove_duplicates: bool,
         **kwargs,
     ):
+
         # Get all executable files in input directory and add them into queue
         file_queue = Queue()
-        filter_queue = []
         total_files = 0
         for root, dirnames, filenames in os.walk(input_dir):
             for filename in fnmatch.filter(filenames, "*.pcap"):
                 match = os.path.join(root, filename)
                 sub_dir = match.replace(input_dir, "")
-                file_queue.append([match, f"{output_dir}/{sub_dir}"])
+                file_queue.put((match, f"{output_dir}/{sub_dir}"))
                 total_files += 1
+
         # Start thread
         pbar = tqdm(total=total_files)
         for _ in range(self.thread_number):

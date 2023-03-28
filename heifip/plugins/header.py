@@ -1,8 +1,11 @@
-from scapy.all import DNSQRField, DNSRRField, ShortEnumField, IntField, Packet, BitField, BitEnumField, FlagsField, XByteField, ByteField, ByteEnumField, StrField, IP_PROTOS, TCPOptionsField, IntField
-from scapy.layers.inet6 import  ipv6nh
-from scapy.all import IP, IPv6, DNS, TCP, UDP
+from scapy.all import (DNS, IP, IP_PROTOS, TCP, UDP, BitEnumField, BitField,
+                       ByteEnumField, ByteField, DNSQRField, DNSRRField,
+                       FlagsField, IntField, IPv6, Packet, ShortEnumField,
+                       StrField, TCPOptionsField, XByteField)
+from scapy.layers.dns import DNSStrField, InheritOriginDNSStrPacket, dnstypes
 from scapy.layers.http import HTTPRequest, HTTPResponse
-from scapy.layers.dns import DNSStrField, dnstypes, InheritOriginDNSStrPacket
+from scapy.layers.inet6 import ipv6nh
+
 
 class CustomIP(Packet):
     name = "IP"

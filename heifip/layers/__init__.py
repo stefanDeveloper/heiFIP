@@ -1,28 +1,21 @@
+import os
 from abc import ABC
-
-from scapy.all import (
-    Packet,
-    wrpcap,
-    rdpcap,
-    RandIP,
-    RandIP6,
-    RandMAC,
-    Raw,
-)
+from enum import Enum, unique
 from typing import Type
+
+from scapy.all import (Packet, RandIP, RandIP6, RandMAC, Raw, rdpcap, sniff,
+                       wrpcap)
+from scapy.layers.dns import DNS
 from scapy.layers.http import HTTPRequest, HTTPResponse, _HTTPContent
 from scapy.layers.inet import IP, TCP, UDP, Ether
 from scapy.layers.inet6 import IPv6
-from scapy.layers.dns import DNS
 
-import os
-from enum import Enum, unique
 from heifip.exceptions import FIPWrongParameterException
-from .http import HTTPRequestPacket, HTTPResponsePacket
-from .ip import IPPacket
-from .dns import DNSPacket
-from .transport import TransportPacket
-from .packet import FIPPacket, UnknownPacket
+from heifip.layers.dns import DNSPacket
+from heifip.layers.http import HTTPRequestPacket, HTTPResponsePacket
+from heifip.layers.ip import IPPacket
+from heifip.layers.packet import FIPPacket, UnknownPacket
+from heifip.layers.transport import TransportPacket
 
 __author__ = "Stefan Machmeier"
 __copyright__ = "Copyright 2023, heiFIP"
@@ -58,10 +51,9 @@ class PacketProcessor:
         assert os.path.isfile(file)
 
         # Read PCAP file with Scapy
-        # TODO Add BPF
-        pcap = rdpcap(filename=file)
+        # pcap = rdpcap(filename=file)
         packets = []
-        # Go through all packets
+        pcap = sniff(offline=file)
         for pkt in pcap:
             # Start preprocessing for each packet
             processed_packet = self.__preprocessing(pkt, preprocessing_type)
@@ -71,6 +63,14 @@ class PacketProcessor:
         return packets
 
     def __preprocessing(self, packet: Packet, preprocessing_type: PacketProcessorType) -> FIPPacket:
+        # match preprocessing_type:
+        #     case PacketProcessorType.HEADER:
+        #         self.__preprossing_header(Packet)
+        #     case PacketProcessorType.PAYLOAD:
+        #         self.__preprocessing_payload(Packet)
+        #     case _:
+        #         pass
+
         fippacket = None
         if packet.haslayer(_HTTPContent):
             if packet.haslayer(HTTPRequest):
@@ -87,32 +87,21 @@ class PacketProcessor:
             pafippacket = FIPPacket(packet)
         else:
             fippacket =  UnknownPacket(packet)
-
-        match preprocessing_type:
-            case PacketProcessorType.HEADER:
-                self.__preprossing_header(fippacket.packet)
-            case PacketProcessorType.PAYLOAD:
-                self.__preprocessing_payload(fippacket.packet)
-            case _:
-                pass
         return fippacket
 
-    def __preprossing_header(self, packet: Packet()):
+    def __preprossing_header(self, packet):
         headers = SUPPORTED_HEADERS + [Raw]
-        layers = packet.layers()
+        layers = packet.packet.layers()
         if len([layer for layer in layers if layer in headers]) == 0:
             return None
-        new_packet = None
         for layer_class in layers:
             if layer_class in headers:
-                # new_layer = self.preprocess_layer(packet, layer_class)
-                # if not new_packet:
-                #     new_packet = new_layer
-                # else:
-                #     new_packet /= new_layer
+                new_layer = self.preprocess_layer(packet, layer_class)
+                if not new_packet:
+                    new_packet = new_layer
+                else:
+                    new_packet /= new_layer
                 pass
-
-        return new_packet
 
     def __preprocessing_payload(self, packet: Packet):
         if packet.haslayer(Raw):

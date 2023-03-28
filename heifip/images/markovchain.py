@@ -1,4 +1,4 @@
-from . import NetworkTrafficImage
+from heifip.images import NetworkTrafficImage
 
 
 class FlowImage(NetworkTrafficImage):

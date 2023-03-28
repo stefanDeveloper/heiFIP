@@ -1,8 +1,9 @@
 
+import hashlib
+import os
+
 from scapy.all import *
 from scapy.all import TCP
-import os
-import hashlib
 
 
 class StrCustomTerminatorField(StrField):

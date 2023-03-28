@@ -1,10 +1,13 @@
-from scapy.all import Packet
-from .tcp import TCPPacket
-from heifip.plugins.header import CustomHTTP, CustomHTTP_Request, CustomHTTP_Response
 from typing import Type
 
+from scapy.all import Packet
 
-class HTTPPacket(TCPPacket):
+from heifip.layers.transport import TransportPacket
+from heifip.plugins.header import (CustomHTTP, CustomHTTP_Request,
+                                   CustomHTTP_Response)
+
+
+class HTTPPacket(TransportPacket):
     def __init__(self, packet: Packet):
         TCPPacket.__init__(self, packet)
 

@@ -1,8 +1,10 @@
-from .ip import IPPacket
-from heifip.plugins.header import CustomTCP, CustomUDP
+from typing import Type
+
 from scapy.all import Packet
 from scapy.layers.inet import TCP, UDP
-from typing import Type
+
+from heifip.layers.ip import IPPacket
+from heifip.plugins.header import CustomTCP, CustomUDP
 
 
 class TransportPacket(IPPacket):

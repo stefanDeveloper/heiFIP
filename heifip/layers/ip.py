@@ -1,9 +1,11 @@
-from .packet import FIPPacket
-from heifip.plugins.header import CustomIP, CustomIPv6
-from scapy.all import Packet, RandIP6, RandIP
+from typing import Type
+
+from scapy.all import Packet, RandIP, RandIP6
 from scapy.layers.inet import IP
 from scapy.layers.inet6 import IPv6
-from typing import Type
+
+from heifip.layers.packet import FIPPacket
+from heifip.plugins.header import CustomIP, CustomIPv6
 
 
 class IPPacket(FIPPacket):

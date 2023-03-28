@@ -1,16 +1,16 @@
-from .transport import TransportPacket
+from typing import Type
 
-from heifip.plugins.header import CustomDNS, CustomDNSQR, CustomDNSRR
 from scapy.all import Packet
 from scapy.layers.dns import DNS
 
-from typing import Type
+from heifip.layers.transport import TransportPacket
+from heifip.plugins.header import CustomDNS, CustomDNSQR, CustomDNSRR
 
 
 class DNSPacket(TransportPacket):
     def __init__(self, packet: Packet) -> None:
         TransportPacket.__init__(self, packet)
-
+    
     def header_preprocessing(self, packet: Packet, layer_class: Type[Packet]):
         layer_copy = packet[layer_class]
         if packet[DNS].qd:
@@ -40,7 +40,7 @@ class DNSPacket(TransportPacket):
             ns=layer_copy.ns,
             ar=layer_copy.ar,
         )
-
+    
     def __header_preprocessing_message_type(self, packet: Packet, message_type: str):
         message = getattr(packet[DNS], message_type)
         if message_type == "qd":

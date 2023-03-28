@@ -1,6 +1,7 @@
 from scapy.all import Packet, RandMAC
 from scapy.layers.inet import Ether
 
+
 class UnknownPacket:
     def __init__(self, packet, address_mapping={}):
         self.address_mapping = address_mapping

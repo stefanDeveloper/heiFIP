@@ -5,9 +5,9 @@ except ImportError:
         "Please install Python dependencies: " "click, colorama (optional)."
     )
 
-from .main import Runner
-from . import __version__, CONTEXT_SETTINGS
-from .layers import PacketProcessorType
+from heifip import CONTEXT_SETTINGS, __version__
+from heifip.layers import PacketProcessorType
+from heifip.main import Runner
 
 
 @click.version_option(version=__version__)

@@ -1,9 +1,10 @@
-import numpy as np
-from scapy.all import Packet, raw
 import binascii
 import logging
 
-from . import NetworkTrafficImage
+import numpy as np
+from scapy.all import Packet, raw
+
+from heifip.images import NetworkTrafficImage
 
 
 class FlowImage(NetworkTrafficImage):
