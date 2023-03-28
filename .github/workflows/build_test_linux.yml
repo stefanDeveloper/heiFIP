@@ -61,10 +61,4 @@ jobs:
     - name: Test
       if: startsWith(matrix.os, 'ubuntu') && !startsWith(matrix.python-version, '3.10')
       run: |
-        python tests.py
-
-    - name: Test and generate coverage report
-      # On version 3.10, we test and generate coverage report.
-      if: startsWith(matrix.python-version, '3.10')
-      run: |
         python -m pytest tests.py

@@ -45,8 +45,9 @@ class DNSPacket(TransportPacket):
         message = getattr(packet[DNS], message_type)
         if message_type == "qd":
             new_message = CustomDNSQR(qname=message.qname, qtype=message.qtype)
-
-            while message := message.payload:
+            
+            message = message.payload
+            while message:
                 new_message /= CustomDNSQR(
                     qname=message.qname,
                     qtype=message.qtype,
@@ -57,7 +58,8 @@ class DNSPacket(TransportPacket):
                     rrname=message.rrname, type=message.type, ttl=message.ttl
                 )
 
-                while message := message.payload:
+                message = message.payload
+                while message:
                     new_message /= CustomDNSRR(
                         rrname=message.rrname, type=message.type, ttl=message.ttl
                     )

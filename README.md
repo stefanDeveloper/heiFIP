@@ -58,12 +58,6 @@ However, we plan to adapt our library to support **online** network data too to 
     <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_windows.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_windows.yml?branch=main&logo=windows&style=for-the-badge&label=windows" alt="Windows WorkFlows" />
     </a>
-    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_aarch64.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_aarch64.yml?branch=main&logo=arm&style=for-the-badge&label=arm64" alt="ARM64 WorkFlows" />
-    </a>
-    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_armhf.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_armhf.yml?branch=main&logo=arm&style=for-the-badge&label=arm32" alt="ARM32 WorkFlows" />
-    </a>
   </td>
 </tr>
 </table>
