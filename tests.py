@@ -9,7 +9,6 @@ from heifip.layers import PacketProcessorType
 TEST_FOLDER = "./tests/pcaps"
 OUTPUT_DIR = "./tests/images"
 
-
 def get_files():
     assert os.path.exists(TEST_FOLDER)
     files = []
@@ -19,7 +18,6 @@ def get_files():
             sub_dir = match.replace(TEST_FOLDER, "")
             files.append([match, f"{OUTPUT_DIR}/{sub_dir}"])
     return files
-
 
 @pytest.mark.parametrize('filepath', get_files())
 def test_extractor(filepath):

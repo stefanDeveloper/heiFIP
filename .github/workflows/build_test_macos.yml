@@ -69,6 +69,4 @@ jobs:
       # On version 3.9, we test and generate coverage report.
       if: startsWith(matrix.python-version, '3.9') && !startsWith(github.ref, 'refs/tags/')
       run: |
-        python -m pip install coverage
-        python -m coverage run tests.py
-      # python -m coverage combine  # tbd.
+        python -m pytest tests.py
