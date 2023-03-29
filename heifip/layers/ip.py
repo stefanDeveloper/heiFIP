@@ -11,14 +11,14 @@ from heifip.plugins.header import CustomIP, CustomIPv6
 class IPPacket(FIPPacket):
     def __init__(self, packet: Packet):
         FIPPacket.__init__(self, packet)
-        if packet.haslayer(IP):
-            self.__filter_ipv4(packet)
+        if self.packet.haslayer(IP):
+            self.__filter_ipv4()
         elif packet.haslayer(IPv6):
-            self.__filter_ipv6(packet)
+            self.__filter_ipv6()
 
-    def __filter_ipv4(self, packet: Packet):
-        previous_src = packet[IP].src
-        previous_dst = packet[IP].dst
+    def __filter_ipv4(self):
+        previous_src = self.packet[IP].src
+        previous_dst = self.packet[IP].dst
 
         if previous_src in self.address_mapping:
             new_src = self.address_mapping[previous_src]
@@ -32,11 +32,24 @@ class IPPacket(FIPPacket):
             new_dst = RandIP()._fix()
             self.address_mapping[previous_dst] = new_dst
 
-        packet[IP].src = new_src
-        packet[IP].dst = new_dst
+        self.packet[IP].src = new_src
+        self.packet[IP].dst = new_dst
 
-    def header_preprocessing_ipv4(self, packet: Packet, layer_class: Type[Packet]):
-        layer_copy = packet[layer_class]
+    def header_preprocessing(self):        
+        if self.packet.haslayer(IP):
+            layer_copy = self.packet[IP]
+            layer_copy = self.header_preprocessing_ipv4(layer_copy)
+            layer_copy.payload = self.packet[IP].payload
+            self.packet[IP] = layer_copy
+        if self.packet.haslayer(IPv6):
+            layer_copy = self.packet[IPv6]
+            layer_copy = self.header_preprocessing_ipv6(layer_copy)
+            layer_copy.payload = self.packet[IPv6].payload
+            self.packet[IPv6] = layer_copy
+
+        super().header_preprocessing()
+
+    def header_preprocessing_ipv4(self, layer_copy: Packet):
         return CustomIP(
             version=layer_copy.version,
             tos=layer_copy.tos,
@@ -45,9 +58,9 @@ class IPPacket(FIPPacket):
             proto=layer_copy.proto,
         )
 
-    def __filter_ipv6(self, packet: Packet):
-        previous_src = packet[IPv6].src
-        previous_dst = packet[IPv6].dst
+    def __filter_ipv6(self):
+        previous_src = self.packet[IPv6].src
+        previous_dst = self.packet[IPv6].dst
 
         if previous_src in self.address_mapping:
             new_src = self.address_mapping[previous_src]
@@ -61,11 +74,10 @@ class IPPacket(FIPPacket):
             new_dst = RandIP6()._fix()
             self.address_mapping[previous_dst] = new_dst
 
-        packet[IPv6].src = new_src
-        packet[IPv6].dst = new_dst
+        self.packet[IPv6].src = new_src
+        self.packet[IPv6].dst = new_dst
 
-    def header_preprocessing_ipv6(self, packet: Packet, layer_class: Type[Packet]):
-        layer_copy = packet[layer_class]
+    def header_preprocessing_ipv6(self, layer_copy: Packet):
         return CustomIPv6(
             version=layer_copy.version,
             tc=layer_copy.tc,

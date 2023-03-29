@@ -35,13 +35,13 @@ _cmd1_options = [
         required=True,
         help="Destination file path, stores result",
     ),
-    click.option("-r", "--read", "input_dir", type=click.Path()),
+    click.option("-r", "--read", "input_dir", required=True, type=click.Path()),
     click.option(
         "-t",
         "--threads",
         "num_threads",
         type=int,
-        default=16,
+        default=4,
         help="Number of parallel threads that can be used",
     ),
     click.option(
@@ -79,6 +79,7 @@ _cmd1_options = [
         help="Within a single output folder belonging to a single input folder no duplicate images will be produced if two inputs lead to the same image",
     )
 ]
+
 
 @cli.group(name="extract", context_settings={'show_default': True})
 def extract():

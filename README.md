@@ -109,8 +109,34 @@ Install our package using PyPi
 ```sh
 pip install heifip
 ```
+Now, you can use the integrate CLI:
 
 ```sh
+> fip
+Usage: fip [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  --version   Show the version and exit.
+  -h, --help  Show this message and exit.
+
+Commands:
+  extract
+```
+
+To extract images from PCAPs, we currently split the command into flow and packet:
+
+```sh
+> fip extract
+Starting FlowImageProcessor CLI
+Usage: fip extract [OPTIONS] COMMAND [ARGS]...
+
+Options:
+  -h, --help  Show this message and exit.
+
+Commands:
+  flow
+  packet
+
 # Show help information
 > fip extract -h
 Starting FlowImageProcessor CLI

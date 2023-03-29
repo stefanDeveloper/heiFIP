@@ -42,7 +42,7 @@ class FIPExtractor:
             *args
         ):
 
-        assert os.path.isfile(input_file)
+        # assert os.path.isfile(input_file)
 
         packets = self.processor.read_packets(input_file, preprocessing_type)
 

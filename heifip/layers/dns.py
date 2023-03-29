@@ -11,20 +11,19 @@ class DNSPacket(TransportPacket):
     def __init__(self, packet: Packet) -> None:
         TransportPacket.__init__(self, packet)
     
-    def header_preprocessing(self, packet: Packet, layer_class: Type[Packet]):
-        layer_copy = packet[layer_class]
-        if packet[DNS].qd:
-            self.__filter_dns_type(packet, "qd")
-        if packet[DNS].an:
-            self.__filter_dns_type(packet, "an")
-        if packet[DNS].ns:
-            self.__filter_dns_type(packet, "ns")
-        if packet[DNS].ar:
-            self.__filter_dns_type(packet, "ar")
+    def header_preprocessing(self):
+        # if self.packet[DNS].qd:
+        #     self.__header_preprocessing_message_type(self.packet, "qd")
+        # if self.packet[DNS].an:
+        #     self.__header_preprocessing_message_type(self.packet, "an")
+        # if self.packet[DNS].ns:
+        #     self.__header_preprocessing_message_type(self.packet, "ns")
+        # if self.packet[DNS].ar:
+        #     self.__header_preprocessing_message_type(self.packet, "ar")
 
-        layer_copy = packet[DNS]
+        layer_copy = self.packet[DNS]
 
-        return CustomDNS(
+        new_layer = CustomDNS(
             qr=layer_copy.qr,
             opcode=layer_copy.opcode,
             aa=layer_copy.aa,
@@ -40,6 +39,11 @@ class DNSPacket(TransportPacket):
             ns=layer_copy.ns,
             ar=layer_copy.ar,
         )
+
+        self.packet[DNS] /= new_layer
+
+        super().header_preprocessing()
+
     
     def __header_preprocessing_message_type(self, packet: Packet, message_type: str):
         message = getattr(packet[DNS], message_type)
@@ -63,5 +67,6 @@ class DNSPacket(TransportPacket):
                     new_message /= CustomDNSRR(
                         rrname=message.rrname, type=message.type, ttl=message.ttl
                     )
-
-        setattr(packet[DNS], message_type, new_message)
+        
+        if message_type != "ar":
+            setattr(packet[DNS], message_type, new_message)

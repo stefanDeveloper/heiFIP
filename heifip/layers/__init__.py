@@ -55,28 +55,20 @@ class PacketProcessor:
 
         packets = []
         pcap = sniff(offline=file)
-        for pkt in pcap:
-            # Start preprocessing for each packet
-            processed_packet = self.__preprocessing(pkt, preprocessing_type)
-            # In case packet returns None
-            if processed_packet != None:
-                packets.append(processed_packet)
+        # for pkt in pcap:
+        # Start preprocessing for each packet
+        processed_packet = self.__preprocessing(pcap[0], preprocessing_type)
+        # In case packet returns None
+        if processed_packet != None:
+            packets.append(processed_packet)
         return packets
 
     def __preprocessing(self, packet: Packet, preprocessing_type: PacketProcessorType) -> FIPPacket:
-        # match preprocessing_type:
-        #     case PacketProcessorType.HEADER:
-        #         self.__preprossing_header(Packet)
-        #     case PacketProcessorType.PAYLOAD:
-        #         self.__preprocessing_payload(Packet)
-        #     case _:
-        #         pass
-
         fippacket = None
         if packet.haslayer(_HTTPContent):
             if packet.haslayer(HTTPRequest):
                 fippacket = HTTPRequestPacket(packet)
-            elif packet.haslayer(HTTPResponse()):
+            elif packet.haslayer(HTTPResponse):
                 fippacket = HTTPResponsePacket(packet)
         elif packet.haslayer(DNS):
             fippacket = DNSPacket(packet)
@@ -88,48 +80,12 @@ class PacketProcessor:
             pafippacket = FIPPacket(packet)
         else:
             fippacket =  UnknownPacket(packet)
-        return fippacket
 
-    def __preprossing_header(self, packet):
-        headers = SUPPORTED_HEADERS + [Raw]
-        layers = packet.packet.layers()
-        if len([layer for layer in layers if layer in headers]) == 0:
-            return None
-        for layer_class in layers:
-            if layer_class in headers:
-                new_layer = self.preprocess_layer(packet, layer_class)
-                if not new_packet:
-                    new_packet = new_layer
-                else:
-                    new_packet /= new_layer
+        match preprocessing_type:
+            case PacketProcessorType.HEADER:
+                fippacket.header_preprocessing()
+            # case PacketProcessorType.PAYLOAD:
+            #     self.__preprocessing_payload(fippacket)
+            case _:
                 pass
-
-    def __preprocessing_payload(self, packet: Packet):
-        if packet.haslayer(Raw):
-            return packet[Raw]
-        else:
-            return None
-
-    # def preprocess_layer(self, packet: Packet, layer_class: Type[Packet]) -> Packet:
-    #     layer_copy = packet[layer_class]
-
-    #     new_layer
-    #     match layer_class:
-    #         case HTTPRequest:
-    #             pass
-    #         case HTTPResponse:
-    #             pass
-    #         case DNS:
-    #             pass
-    #         case TCP:
-    #             pass
-    #         case UDP:
-    #             pass
-    #         case IPv6:
-    #             pass
-    #         case IP:
-    #             pass
-    #         case Raw:
-    #             new_layer = layer_copy
-
-    #     return new_layer
+        return fippacket
