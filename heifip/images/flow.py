@@ -18,18 +18,17 @@ class FlowImage(NetworkTrafficImage):
         auto_dim=False,
         append=False,
     ) -> None:
+        NetworkTrafficImage.__init__(self, fill, dim)
         self.width = width
         self.packets = packets
         self.auto_dim = auto_dim
-        self.fill = fill
-        self.dim = dim
         self.matrix, self.binaries = (
             self.__get_matrix_tiled(self.dim, self.auto_dim, packets)
             if tiled
             else self.__get_matrix(append, packets)
         )
         del packets
-        NetworkTrafficImage.__init__(self, fill, dim)
+        
 
     def __tile_images(self, images, cols):
         """Tile images of same size to grid with given number of columns.
@@ -69,6 +68,10 @@ class FlowImage(NetworkTrafficImage):
         return tiled
 
     def __get_matrix_tiled(self, dim: int, auto_dim: bool, packets: [Packet]):
+        """
+            Creates a matrix of a list of Scapy Packet.
+            Packets are tiled into a quadratic representation.
+        """
         binaries = []
         for packet in self.packets:
             # get Hex data
@@ -101,6 +104,9 @@ class FlowImage(NetworkTrafficImage):
         return fh, binaries
 
     def __get_matrix(self, append: bool, packets: [Packet]):
+        """
+            Creates a matrix of a list of Scapy Packet.
+        """
         binaries = []
         for packet in self.packets:
             # get Hex data

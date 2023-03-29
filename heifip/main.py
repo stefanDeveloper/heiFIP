@@ -21,45 +21,28 @@ class Runner:
 
     def create_image(
         self,
-        filepath: str,
+        input_file: str,
         output_dir: str,
         pbar,
-        preprocessing_type: str,
-        min_image_dim: int,
-        max_image_dim: int,
-        min_packets_per_flow: int,
-        remove_duplicates: bool,
-        width: str,
-        append: bool,
-        tiled: bool,
+        *args
     ):
-        img = extractor.create_image()
+        imgs = self.extractor.create_image(input_file, *args)
         pbar.update(1)
-        if img != None:
-            extractor.save_image(img)
+        for img in imgs:
+            self.extractor.save_image(img, output_dir)
 
     def start_process(
         self,
         file_queue,
         pbar,
-        preprocessing_type,
-        min_image_dim,
-        max_image_dim,
-        min_packets_per_flow,
-        remove_duplicates,
         *args,
     ):
         while not file_queue.empty():
-            filename, output_dir = file_queue.get()
+            input_file, output_dir = file_queue.get()
             self.create_image(
-                filename,
+                input_file,
                 output_dir,
                 pbar,
-                preprocessing_type,
-                min_image_dim,
-                max_image_dim,
-                min_packets_per_flow,
-                remove_duplicates,
                 *args,
             )
             file_queue.task_done()
@@ -68,12 +51,7 @@ class Runner:
         self,
         input_dir: str,
         output_dir: str,
-        preprocessing_type,
-        min_image_dim: int,
-        max_image_dim: int,
-        min_packets_per_flow: int,
-        remove_duplicates: bool,
-        **kwargs,
+        *args
     ):
 
         # Get all executable files in input directory and add them into queue
@@ -94,14 +72,7 @@ class Runner:
                 args=(
                     file_queue,
                     pbar,
-                    preprocessing_type,
-                    min_image_dim,
-                    max_image_dim,
-                    min_packets_per_flow,
-                    remove_duplicates,
-                    kwargs["width"],
-                    kwargs["append"],
-                    kwargs["tiled"],
+                    *args
                 ),
             )
 

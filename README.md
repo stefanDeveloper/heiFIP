@@ -76,8 +76,7 @@ However, we plan to adapt our library to support **online** network data too to 
 
 ## Motivation
 
-The idea to create heiFIP rose while working with Deep Learning approaches for malware traffic classification.
-Many papers show image representation, however, there is currently no official library to support reproducible data.
+The idea to create heiFIP came from working with Deep Learning approaches to classify malware traffic. Many papers use image representations of network traffic, but reproducing their results was quite cumbersome. As a result, we found that there is currently no official library that supports reproducible images of network traffic. For this reason, we developed heiFIP to easily create images of network traffic and reproduce ML/DL results.
 
 ## Main Features
 

@@ -1,4 +1,4 @@
-CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"])
+CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help"], show_default=True)
 
 __author__ = "Stefan Machmeier"
 __copyright__ = "Copyright 2023, heiFIP"

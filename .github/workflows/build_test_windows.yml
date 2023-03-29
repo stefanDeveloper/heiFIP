@@ -14,15 +14,13 @@ jobs:
       fail-fast: false
       matrix:
         os: ["windows-latest"]
-        python-version: [
-                        # "pypy-3.9",
-                        #  "pypy-3.8",
-                         "pypy-3.7",
-                        #  "3.11",
-                        #  "3.9",
-                        #  "3.8",
-                        #  "3.7"
-                         ]
+        python-version: ["pypy-3.9",
+                        "pypy-3.8",
+                        #  "pypy-3.7", does work atm.
+                         "3.11",
+                         "3.9",
+                         "3.8",
+                         "3.7"]
 
     steps:
     - uses: actions/checkout@v3

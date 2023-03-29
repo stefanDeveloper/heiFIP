@@ -47,11 +47,12 @@ class PacketProcessor:
         # Write pcap
         wrpcap(f"{self.filename}_converted.pcap", self.packets, append=True)
 
-    def read_packets(self, file, preprocessing_type: PacketProcessorType) -> list:
+    def read_packets(self, file, preprocessing_type: PacketProcessorType):
         assert os.path.isfile(file)
 
         # Read PCAP file with Scapy
         # pcap = rdpcap(filename=file)
+
         packets = []
         pcap = sniff(offline=file)
         for pkt in pcap:
