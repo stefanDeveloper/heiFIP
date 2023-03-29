@@ -10,7 +10,7 @@ from heifip.plugins.header import (CustomHTTP, CustomHTTP_Request,
 
 class HTTPPacket(TransportPacket):
     def __init__(self, packet: Packet):
-        TCPPacket.__init__(self, packet)
+        TransportPacket.__init__(self, packet)
     def header_preprocessing(self):
         super().header_preprocessing()
 

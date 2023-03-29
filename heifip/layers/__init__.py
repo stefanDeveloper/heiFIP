@@ -6,13 +6,13 @@ from typing import Type
 from scapy.all import (Packet, RandIP, RandIP6, RandMAC, Raw, rdpcap, sniff,
                        wrpcap)
 from scapy.layers.dns import DNS
-from scapy.layers.http import HTTPRequest, HTTPResponse, _HTTPContent
+from scapy.layers.http import HTTPRequest, HTTPResponse, HTTP
 from scapy.layers.inet import IP, TCP, UDP, Ether
 from scapy.layers.inet6 import IPv6
 
 from heifip.exceptions import FIPWrongParameterException
 from heifip.layers.dns import DNSPacket
-from heifip.layers.http import HTTPRequestPacket, HTTPResponsePacket
+from heifip.layers.http import HTTPRequestPacket, HTTPResponsePacket, HTTPPacket
 from heifip.layers.ip import IPPacket
 from heifip.layers.packet import FIPPacket, UnknownPacket
 from heifip.layers.transport import TransportPacket
@@ -55,21 +55,23 @@ class PacketProcessor:
 
         packets = []
         pcap = sniff(offline=file)
-        # for pkt in pcap:
-        # Start preprocessing for each packet
-        processed_packet = self.__preprocessing(pcap[0], preprocessing_type)
-        # In case packet returns None
-        if processed_packet != None:
-            packets.append(processed_packet)
+        for pkt in pcap:
+            # Start preprocessing for each packet
+            processed_packet = self.__preprocessing(pkt, preprocessing_type)
+            # In case packet returns None
+            if processed_packet != None:
+                packets.append(processed_packet)
         return packets
 
     def __preprocessing(self, packet: Packet, preprocessing_type: PacketProcessorType) -> FIPPacket:
         fippacket = None
-        if packet.haslayer(_HTTPContent):
+        if packet.haslayer(HTTP):
             if packet.haslayer(HTTPRequest):
                 fippacket = HTTPRequestPacket(packet)
             elif packet.haslayer(HTTPResponse):
                 fippacket = HTTPResponsePacket(packet)
+            else:
+                fippacket = HTTPPacket(packet)
         elif packet.haslayer(DNS):
             fippacket = DNSPacket(packet)
         elif packet.haslayer(TCP) or packet.haslayer(UDP):
@@ -84,7 +86,7 @@ class PacketProcessor:
         match preprocessing_type:
             case PacketProcessorType.HEADER:
                 fippacket.header_preprocessing()
-            # case PacketProcessorType.PAYLOAD:
+            # case PacketProcessorType.PAYLOAD:     # TODO: Has to be implemented
             #     self.__preprocessing_payload(fippacket)
             case _:
                 pass
