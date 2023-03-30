@@ -8,8 +8,8 @@ from heifip.plugins.header import CustomDNS, CustomDNSQR, CustomDNSRR
 
 
 class DNSPacket(TransportPacket):
-    def __init__(self, packet: Packet) -> None:
-        TransportPacket.__init__(self, packet)
+    def __init__(self, packet: Packet, address_mapping={}, layer_map={}) -> None:
+        TransportPacket.__init__(self, packet, address_mapping, layer_map)
     
     def header_preprocessing(self):
         # if self.packet[DNS].qd:

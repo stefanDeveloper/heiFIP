@@ -4,16 +4,16 @@ from scapy.all import Packet, RandIP, RandIP6
 from scapy.layers.inet import IP
 from scapy.layers.inet6 import IPv6
 
-from heifip.layers.packet import FIPPacket
+from heifip.layers.packet import EtherPacket
 from heifip.plugins.header import CustomIP, CustomIPv6
 
 
-class IPPacket(FIPPacket):
-    def __init__(self, packet: Packet):
-        FIPPacket.__init__(self, packet)
-        if self.packet.haslayer(IP):
+class IPPacket(EtherPacket):
+    def __init__(self, packet: Packet, address_mapping={}, layer_map={}):
+        EtherPacket.__init__(self, packet, address_mapping, layer_map)
+        if IP in self.layer_map:
             self.__filter_ipv4()
-        elif packet.haslayer(IPv6):
+        elif IPv6 in self.layer_map:
             self.__filter_ipv6()
 
     def __filter_ipv4(self):
@@ -36,15 +36,17 @@ class IPPacket(FIPPacket):
         self.packet[IP].dst = new_dst
 
     def header_preprocessing(self):        
-        if self.packet.haslayer(IP):
+        if IP in self.layer_map:
             layer_copy = self.packet[IP]
             layer_copy = self.header_preprocessing_ipv4(layer_copy)
-            layer_copy.payload = self.packet[IP].payload
+            if self.packet[IP].payload != None:
+                layer_copy.payload = self.packet[IP].payload
             self.packet[IP] = layer_copy
-        if self.packet.haslayer(IPv6):
+        if IPv6 in self.layer_map:
             layer_copy = self.packet[IPv6]
             layer_copy = self.header_preprocessing_ipv6(layer_copy)
-            layer_copy.payload = self.packet[IPv6].payload
+            if self.packet[IPv6].payload != None:
+                layer_copy.payload = self.packet[IPv6].payload
             self.packet[IPv6] = layer_copy
 
         super().header_preprocessing()

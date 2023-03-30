@@ -26,7 +26,7 @@ class Runner:
         pbar,
         *args
     ):
-        imgs = self.extractor.create_image(input_file, *args)
+        imgs = self.extractor.create_image_from_file(input_file, *args)
         pbar.update(1)
         for img in imgs:
             self.extractor.save_image(img, output_dir)

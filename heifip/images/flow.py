@@ -11,9 +11,9 @@ class FlowImage(NetworkTrafficImage):
     def __init__(
         self,
         packets,
-        width=128,
         dim=8,
         fill=0,
+        width=128,
         tiled=False,
         auto_dim=False,
         append=False,

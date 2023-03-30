@@ -1,5 +1,7 @@
 import os
 
+from scapy.all import Packet
+
 from PIL import Image as PILImage
 
 from heifip.exceptions import FIPWrongParameterException
@@ -30,7 +32,7 @@ class FIPExtractor:
 
         return True
 
-    def create_image(
+    def create_image_from_file(
             self,
             input_file: str,
             preprocessing_type: PacketProcessorType = PacketProcessorType.NONE,
@@ -42,9 +44,42 @@ class FIPExtractor:
             *args
         ):
 
-        # assert os.path.isfile(input_file)
+        assert os.path.isfile(input_file)
 
-        packets = self.processor.read_packets(input_file, preprocessing_type)
+        packets = self.processor.read_packets_file(input_file, preprocessing_type)
+
+        images = []
+        if image_type == FlowImage:
+            # when no file matches the preprocessing
+            if len(packets) == 0 or len(packets) < min_packets_per_flow:
+                return images
+
+            image = FlowImage(packets, *args)
+            if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                images.append(image.matrix)
+        elif image_type  == PacketImage:
+            for packet in packets:
+                image = PacketImage(packet, *args)
+                if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                    images.append(image.matrix)
+        else:
+            raise FIPWrongParameterException
+
+        return images
+
+    def create_image_from_packet(
+            self,
+            packets: [Packet],
+            preprocessing_type: PacketProcessorType = PacketProcessorType.NONE,
+            image_type: NetworkTrafficImage = PacketImage,
+            min_image_dim: int = 0,
+            max_image_dim: int = 0,
+            min_packets_per_flow: int = 0,
+            remove_duplicates: bool = False,
+            *args
+        ):
+
+        packets = self.processor.read_packets_packet(packets, preprocessing_type)
 
         images = []
         if image_type == FlowImage:
