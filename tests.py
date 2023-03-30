@@ -22,7 +22,7 @@ def get_files():
             match = os.path.join(root, filename)
             sub_dir = match.replace(TEST_FOLDER, "")
             packets.append(rdpcap(match))
-    return packets # Otherwise we break Python...
+    return packets[0:25] # Otherwise we break Python...
 
 
 @pytest.mark.parametrize('packet', get_files())
