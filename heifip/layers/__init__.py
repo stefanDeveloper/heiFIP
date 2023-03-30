@@ -90,11 +90,7 @@ class PacketProcessor:
         elif Ether in fippacket.layer_map:
             fippacket = fippacket.convert(EtherPacket, fippacket)
 
-        match preprocessing_type:
-            case PacketProcessorType.HEADER:
-                fippacket.header_preprocessing()
-            # case PacketProcessorType.PAYLOAD:     # TODO: Has to be implemented
-            #     self.__preprocessing_payload(fippacket)
-            case _:
-                pass
+        if preprocessing_type == PacketProcessorType.HEADER:
+            fippacket.header_preprocessing()
+
         return fippacket
