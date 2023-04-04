@@ -6,15 +6,16 @@ from typing import Type
 from scapy.all import (Packet, RandIP, RandIP6, RandMAC, Raw, rdpcap, sniff,
                        wrpcap)
 from scapy.layers.dns import DNS
-from scapy.layers.http import HTTPRequest, HTTPResponse, HTTP
+from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
 from scapy.layers.inet import IP, TCP, UDP, Ether
 from scapy.layers.inet6 import IPv6
 
 from heifip.exceptions import FIPWrongParameterException
 from heifip.layers.dns import DNSPacket
-from heifip.layers.http import HTTPRequestPacket, HTTPResponsePacket, HTTPPacket
+from heifip.layers.http import (HTTPPacket, HTTPRequestPacket,
+                                HTTPResponsePacket)
 from heifip.layers.ip import IPPacket
-from heifip.layers.packet import FIPPacket, UnknownPacket, EtherPacket
+from heifip.layers.packet import EtherPacket, FIPPacket, UnknownPacket
 from heifip.layers.transport import TransportPacket
 
 __author__ = "Stefan Machmeier"

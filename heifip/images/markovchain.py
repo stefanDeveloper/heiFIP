@@ -1,7 +1,6 @@
 import logging
 
 import numpy as np
-from bitstring import BitArray
 from scapy.all import Packet, chexdump, hexdump, raw
 
 from heifip.images import NetworkTrafficImage

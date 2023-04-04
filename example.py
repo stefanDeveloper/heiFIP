@@ -1,7 +1,8 @@
 from heifip.extractor import FIPExtractor
-from heifip.images.markovchain import MarkovTransitionMatrixFlow, MarkovTransitionMatrixPacket
-from heifip.images.packet import PacketImage
 from heifip.images.flow import FlowImage
+from heifip.images.markovchain import (MarkovTransitionMatrixFlow,
+                                       MarkovTransitionMatrixPacket)
+from heifip.images.packet import PacketImage
 from heifip.layers import PacketProcessorType
 
 extractor = FIPExtractor()
