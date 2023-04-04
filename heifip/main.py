@@ -75,7 +75,6 @@ class Runner:
                     *args
                 ),
             )
-
             thread.daemon = True
             thread.start()
         file_queue.join()

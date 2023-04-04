@@ -141,33 +141,37 @@ Commands:
   packet
 
 # Show help information
-> fip extract -h
+> fip extract [flow/packet]-h
 Starting FlowImageProcessor CLI
-Usage: fip extract [OPTIONS]
+Usage: fip extract flow [OPTIONS]
 
 Options:
-  -rd, --remove_duplicates      Within a single output folder belonging to a
-                                single input folder no duplicate images will
-                                be produced if two inputs lead to the same
-                                image
-  -mp, --min_packets INTEGER    Minimum packets that a FlowImage needs to
-                                have, 0=No minimum packets per flow
-  -maxid, --max_im_dim INTEGER  Maximum dim ouput images can have, 0=No
-                                maximum dim
-  -mid, --min_im_dim INTEGER    Minimum dim ouput images need to have, 0=No
-                                minimum dim
-  -p, --preprocess TEXT         Applies a preprocessing to the input data:
-                                none: No preprocessing payload: Only payload
-                                data is used header: Preprocesses headers
-                                (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove
-                                some biasing data
-  -t, --threads INTEGER         Number of parallel threads that can be used
-  -r, --read PATH
-  -w, --write PATH              Destination file path, stores result
-                                [required]
-  -h, --help                    Show this message and exit.
+  -w, --write PATH            Destination file path, stores result  [required]
+  -r, --read PATH             [required]
+  -t, --threads INTEGER       Number of parallel threads that can be used
+                              [default: 4]
+  --preprocess [NONE|HEADER]  Applies a preprocessing to the input data: none:
+                              No preprocessing payload: Only payload data is
+                              used header: Preprocesses headers
+                              (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove
+                              some biasing data  [default: NONE]
+  --min_im_dim INTEGER        Minimum dim ouput images need to have, 0=No
+                              minimum dim  [default: 0]
+  --max_im_dim INTEGER        Maximum dim ouput images can have, 0=No maximum
+                              dim  [default: 0]
+  --remove_duplicates         Within a single output folder belonging to a
+                              single input folder no duplicate images will be
+                              produced if two inputs lead to the same image
+  --min_packets INTEGER       Minimum packets that a FlowImage needs to have,
+                              0=No minimum packets per flow  [default: 0]
+  --max_packets INTEGER       Minimum packets that a FlowImage needs to have,
+                              0=No minimum packets per flow  [default: 0]
+  --append
+  --tiled
+  --width INTEGER             [default: 128]
+  -h, --help                  Show this message and exit.
 
-> fip extract -r /PATH/PCAPs -w /PATH/IMAGES
+> fip extract flow -r /PATH/PCAPs -w /PATH/IMAGES
 ```
 
 Import FIPExtractor to run it inside your program:
