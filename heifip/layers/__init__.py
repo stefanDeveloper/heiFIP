@@ -33,7 +33,6 @@ SUPPORTED_HEADERS = [IP, IPv6, DNS, HTTPRequest, HTTPResponse, TCP, UDP]
 class PacketProcessorType(Enum):
     NONE = 1
     HEADER = 2
-    PAYLOAD = 3
 
 
 class PacketProcessor:
@@ -47,21 +46,23 @@ class PacketProcessor:
         # Write pcap
         wrpcap(f"{self.filename}_converted.pcap", self.packets, append=True)
 
-    def read_packets_file(self, file: str, preprocessing_type: PacketProcessorType):
+    def read_packets_file(self, file: str, preprocessing_type: PacketProcessorType) -> [FIPPacket]:
         assert os.path.isfile(file)
 
         # Read PCAP file with Scapy
         packets = []
+        # TODO Only read max number of packets
         pcap = sniff(offline=file)
         for pkt in pcap:
             # Start preprocessing for each packet
             processed_packet = self.__preprocessing(pkt, preprocessing_type)
+            # TODO Run extract here to reduce amount of loops in code. Atm very inefficient for computation time and memory
             # In case packet returns None
             if processed_packet != None:
                 packets.append(processed_packet)
         return packets
 
-    def read_packets_packet(self, packet: [Packet], preprocessing_type: PacketProcessorType):
+    def read_packets_packet(self, packet: [Packet], preprocessing_type: PacketProcessorType) -> [FIPPacket]:
         # Read PCAP file with Scapy
         packets = []
         for pkt in packet:

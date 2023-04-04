@@ -6,9 +6,9 @@ except ImportError:
     )
 
 from heifip import CONTEXT_SETTINGS, __version__
-from heifip.layers import PacketProcessorType
 from heifip.images import NetworkTrafficImage
 from heifip.images.flow import FlowImage
+from heifip.layers import PacketProcessorType
 from heifip.main import Runner
 
 
@@ -45,7 +45,6 @@ _cmd1_options = [
         help="Number of parallel threads that can be used",
     ),
     click.option(
-        "-p",
         "--preprocess",
         "preprocessing_type",
         default="NONE",
@@ -55,7 +54,6 @@ _cmd1_options = [
         help="Applies a preprocessing to the input data:\n none: No preprocessing\n payload: Only payload data is used\n header: Preprocesses headers (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove some biasing data",
     ),
     click.option(
-        "-mid",
         "--min_im_dim",
         "min_image_dim",
         type=int,
@@ -63,7 +61,6 @@ _cmd1_options = [
         help="Minimum dim ouput images need to have, 0=No minimum dim",
     ),
     click.option(
-        "-maxid",
         "--max_im_dim",
         "max_image_dim",
         type=int,
@@ -71,7 +68,6 @@ _cmd1_options = [
         help="Maximum dim ouput images can have, 0=No maximum dim",
     ),
     click.option(
-        "-rd",
         "--remove_duplicates",
         "remove_duplicates",
         is_flag=True,
@@ -104,7 +100,6 @@ def extract_packet_image(
 @extract.command(name="flow")
 @add_options(_cmd1_options)
 @click.option(
-    "-mp",
     "--min_packets",
     "min_packets_per_flow",
     type=int,
@@ -112,7 +107,13 @@ def extract_packet_image(
     help="Minimum packets that a FlowImage needs to have, 0=No minimum packets per flow",
 )
 @click.option(
-    "-a",
+    "--max_packets",
+    "max_packets_per_flow",
+    type=int,
+    default=0,
+    help="Minimum packets that a FlowImage needs to have, 0=No minimum packets per flow",
+)
+@click.option(
     "--append",
     "append",
     is_flag=True,
@@ -120,7 +121,6 @@ def extract_packet_image(
     help="",
 )
 @click.option(
-    "-ti",
     "--tiled",
     "tiled",
     is_flag=True,
@@ -128,7 +128,6 @@ def extract_packet_image(
     help="",
 )
 @click.option(
-    "-wi",
     "--width",
     "width",
     default=128,
@@ -143,6 +142,7 @@ def extract_flow_image(
     min_image_dim,
     max_image_dim,
     min_packets_per_flow,
+    max_packets_per_flow,
     remove_duplicates,
     append,
     tiled,
@@ -157,6 +157,7 @@ def extract_flow_image(
         min_image_dim,
         max_image_dim,
         min_packets_per_flow,
+        max_packets_per_flow,
         remove_duplicates,
         width,
         append,

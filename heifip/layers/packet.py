@@ -1,7 +1,7 @@
+from typing import Type
+
 from scapy.all import Packet, RandMAC
 from scapy.layers.inet import Ether
-
-from typing import Type
 
 
 class FIPPacket:

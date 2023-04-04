@@ -1,12 +1,14 @@
 import os
 
-from scapy.all import Packet
-
+import numpy as np
 from PIL import Image as PILImage
+from scapy.all import Packet
 
 from heifip.exceptions import FIPWrongParameterException
 from heifip.images import NetworkTrafficImage
 from heifip.images.flow import FlowImage
+from heifip.images.markovchain import (MarkovTransitionMatrixFlow,
+                                       MarkovTransitionMatrixPacket)
 from heifip.images.packet import PacketImage
 from heifip.layers import PacketProcessor, PacketProcessorType
 
@@ -40,6 +42,7 @@ class FIPExtractor:
             min_image_dim: int = 0,
             max_image_dim: int = 0,
             min_packets_per_flow: int = 0,
+            max_packets_per_flow: int = 0,
             remove_duplicates: bool = False,
             *args
         ):
@@ -54,12 +57,37 @@ class FIPExtractor:
             if len(packets) == 0 or len(packets) < min_packets_per_flow:
                 return images
 
+            # cut packets when too many are there
+            if max_packets_per_flow != 0 and len(packets) > max_packets_per_flow:
+                packets = packets[:max_packets_per_flow]
+
             image = FlowImage(packets, *args)
             if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
                 images.append(image.matrix)
+
         elif image_type  == PacketImage:
+
             for packet in packets:
                 image = PacketImage(packet, *args)
+                if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                    images.append(image.matrix)
+
+        elif image_type == MarkovTransitionMatrixFlow:
+            # when no file matches the preprocessing
+            if len(packets) == 0 or len(packets) < min_packets_per_flow:
+                return images
+
+            # cut packets when too many are there
+            if max_packets_per_flow != 0 and len(packets) > max_packets_per_flow:
+                packets = packets[:max_packets_per_flow]
+
+            image = MarkovTransitionMatrixFlow(packets, *args)
+            if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                images.append(image.matrix)
+
+        elif image_type == MarkovTransitionMatrixPacket:
+            for packet in packets:
+                image = MarkovTransitionMatrixPacket(packet, *args)
                 if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
                     images.append(image.matrix)
         else:
@@ -75,6 +103,7 @@ class FIPExtractor:
             min_image_dim: int = 0,
             max_image_dim: int = 0,
             min_packets_per_flow: int = 0,
+            max_packets_per_flow: int = 0,
             remove_duplicates: bool = False,
             *args
         ):
@@ -87,12 +116,37 @@ class FIPExtractor:
             if len(packets) == 0 or len(packets) < min_packets_per_flow:
                 return images
 
+            # cut packets when too many are there
+            if max_packets_per_flow != 0 and len(packets) > max_packets_per_flow:
+                packets = packets[:max_packets_per_flow]
+
             image = FlowImage(packets, *args)
             if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
                 images.append(image.matrix)
+
         elif image_type  == PacketImage:
+
             for packet in packets:
                 image = PacketImage(packet, *args)
+                if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                    images.append(image.matrix)
+
+        elif image_type == MarkovTransitionMatrixFlow:
+            # when no file matches the preprocessing
+            if len(packets) == 0 or len(packets) < min_packets_per_flow:
+                return images
+
+            # cut packets when too many are there
+            if max_packets_per_flow != 0 and len(packets) > max_packets_per_flow:
+                packets = packets[:max_packets_per_flow]
+
+            image = MarkovTransitionMatrixFlow(packets, *args)
+            if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                images.append(image.matrix)
+
+        elif image_type == MarkovTransitionMatrixPacket:
+            for packet in packets:
+                image = MarkovTransitionMatrixFlow(packets, *args)
                 if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
                     images.append(image.matrix)
         else:
@@ -101,7 +155,16 @@ class FIPExtractor:
         return images
 
     def save_image(self, img, output_dir):
-        pil_img = PILImage.fromarray(img)
+        pil_img = PILImage.fromarray(self.convert(img, 0, 255, np.uint8))
         if not os.path.exists(os.path.realpath(os.path.dirname(output_dir))):
             os.makedirs(os.path.realpath(os.path.dirname(output_dir)))
         pil_img.save(f"{output_dir}_processed.png")
+
+    def convert(self, img, target_type_min, target_type_max, target_type):
+        imin = img.min()
+        imax = img.max()
+
+        a = (target_type_max - target_type_min) / (imax - imin)
+        b = target_type_max - a * imax
+        new_img = (a * img + b).astype(target_type)
+        return new_img

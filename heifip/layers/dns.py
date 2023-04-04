@@ -12,6 +12,7 @@ class DNSPacket(TransportPacket):
         TransportPacket.__init__(self, packet, address_mapping, layer_map)
     
     def header_preprocessing(self):
+        # TODO: Fix issue with DNS processing
         # if self.packet[DNS].qd:
         #     self.__header_preprocessing_message_type(self.packet, "qd")
         # if self.packet[DNS].an:

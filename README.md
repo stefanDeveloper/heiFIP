@@ -76,7 +76,7 @@ However, we plan to adapt our library to support **online** network data too to 
 
 ## Motivation
 
-The idea to create heiFIP came from working with Deep Learning approaches to classify malware traffic. Many papers use image representations of network traffic, but reproducing their results was quite cumbersome. As a result, we found that there is currently no official library that supports reproducible images of network traffic. For this reason, we developed heiFIP to easily create images of network traffic and reproduce ML/DL results.
+The idea to create heiFIP came from working with Deep Learning approaches to classify malware traffic on images. Many papers use image representation of network traffic, but reproducing their results was quite cumbersome. As a result, we found that there is currently no official library that supports reproducible images of network traffic. For this reason, we developed heiFIP to easily create images of network traffic and reproduce ML/DL results. Researchers can use this library as a baseline for their work to enable other researchers to easily recreate their findings.
 
 ## Main Features
 
@@ -86,21 +86,24 @@ The idea to create heiFIP came from working with Deep Learning approaches to cla
     - **Min image dimesion** allows you to specify the minimum image dimension. If the packet is smaller than the specified size, it fills the remaining pixel with 0.
     - **Remove duplicates** allows you to automatically remove same traffic.
     - **Append** each flow to each other or write each packet to a new row.
-    - **Max packets per flow** allows you to specify the maximum number of packets per flow.
+    - **Tiled** each flow is tiled into a square image representation.
+    - **Min packets per flow** allows you to specify the minimum number of packets per flow. If the total number of packets is too small, no image will be created.
+    - **Max packets per flow** allows you to specify the maximum number of packets per flow. If the total number of packets is too great, the remaining images are discarded.
   - **Packet Image** converts a single packet into an image.
-  - **Bidrectional Images** converts a bidirectional communication to an image.
-- **Header** processing also you to customize header fields of different protocols. It aims to remove biasing fields.
-  - **IPv4** and **IPv6**: tbd.
-  - **TCP** and **UDP**: tbd.
-  - **HTTP**: tbd.
-  - **DNS**: tbd.
+  - **Markov Transition Matrix Image**: converts a packet or a flow into a Markov representation.
+- **Header** processing allows you to customize header fields of different protocols. It aims to remove biasing fields. For more details look into [header.py](https://github.com/stefanDeveloper/heiFIP/blob/main/heifip/plugins/header.py)
 - **Remove Payload** options allows you to only work on header data.
-- **Fast and flexible**: We rely on [Scapy]() for our image generation and header processing.
+- **Fast and flexible**: We rely on [Scapy](https://github.com/secdev/scapy) for our sniffing and header processing. Image preparation is based on raw bytes.
 - **Machine learning orientation**: heiFIP aims to make Deep Learning approaches using network data as images reproducible and deployable. Using heiFIP as a common framework enables researches to test and verify their models.
 
 ## Examples
 
-![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/SMB.png?raw=true)
+| Image Type | Description | Example |
+|------------|-------------|---------|
+| Packet | Converts a single packet into a square image. Size depends on the total length | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/packet.png?raw=true) |
+| Flow | Converts a flow packet into a square image | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/flow-tiled.png?raw=true) |
+| Markov Transition Matrix Packet | Converts a packet into a Markov Transition Matrix. Size is fixed to 16x16. | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-packet.png?raw=true) |
+| Markov Transition Matrix Flow | Converts a flow into a Markov Transition Matrix. It squares the image based on the number of packets | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-flow.png?raw=true) |
 
 ## Getting Started
 
