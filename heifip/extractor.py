@@ -148,6 +148,8 @@ class FIPExtractor:
         else:
             raise FIPWrongParameterException
 
+        return images
+
     def save_image(self, img, output_dir):
         pil_img = PILImage.fromarray(self.convert(img, 0, 255, np.uint8))
         if not os.path.exists(os.path.realpath(os.path.dirname(output_dir))):

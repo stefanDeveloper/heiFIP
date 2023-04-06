@@ -66,6 +66,7 @@ class MarkovTransitionMatrixFlow(MarkovTransitionMatrix):
         Returns:
             ndarray: stitched image
         """
+        # TODO Rework: Something is broken here
         logging.debug("Building tiled image")
         images = iter(images)
         first = True
