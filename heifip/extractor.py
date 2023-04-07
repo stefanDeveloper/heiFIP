@@ -109,7 +109,6 @@ class FIPExtractor:
             *args
         ):
         images = []
-        print(image_type == FlowImageTiledFixed)
         if image_type == FlowImage:
             # when no file matches the preprocessing
             if len(packets) == 0 or len(packets) < min_packets_per_flow:

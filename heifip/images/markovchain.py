@@ -47,12 +47,9 @@ class MarkovTransitionMatrixFlow(MarkovTransitionMatrix):
             m = self.transition_matrix(transition)
             result.append(np.array(m))
         
-        # TODO Handle square images
-        # Get size of total image
-        length_total = len(result)
-        dim_total = int(np.ceil(np.sqrt(length_total)))
         # Create tiled image
-        fh = self.__tile_images(result, dim_total, dim)
+        fh = self.__tile_images(result, 4, 16)
+
         # Convert to int
         self.matrix = fh
         del packets

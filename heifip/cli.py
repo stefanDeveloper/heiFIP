@@ -8,8 +8,11 @@ except ImportError:
 from heifip import CONTEXT_SETTINGS, __version__
 from heifip.images import NetworkTrafficImage
 from heifip.images.flow import FlowImage
+from heifip.images.flow_tiled_auto import FlowImageTiledAuto
+from heifip.images.flow_tiled_fixed import FlowImageTiledFixed
+from heifip.images.markovchain import (MarkovTransitionMatrixFlow,
+                                       MarkovTransitionMatrixPacket)
 from heifip.images.packet import Packet
-from heifip.images.markovchain import MarkovTransitionMatrixFlow
 from heifip.layers import PacketProcessorType
 from heifip.main import Runner
 
@@ -148,7 +151,7 @@ def extract_packet_image(
     fill,
     auto_dim,
 ):
-    """Extracts each packet and converts it into a single image representation."""
+    """Extracts each packet from PCAP file and converts it into a single image representation."""
     runner = Runner(num_threads)
     runner.run(
         input_dir,
@@ -191,7 +194,7 @@ def extract_flow_image(
     fill,
     append,
 ):
-    """Extracts a list of packets and converts it into an image. You can either append each packet or write each packet into a new line."""
+    """Extracts a list of packets from PCAP file and converts it into an image. You can either append each packet or write each packet into a new line."""
     runner = Runner(num_threads)
     runner.run(
         input_dir,
@@ -234,13 +237,13 @@ def extract_flow_tiled_fixed_image(
     fill,
     cols,
 ):
-    """Extracts packets from a PCAP file and converts all packets into a single quadratic image based on the number of columns. If more packets are given than the total size of cols*cols, only the first n given packets are used."""
+    """Extracts packets from PCAP file and converts all packets into a single quadratic image based on the number of columns. If more packets are given than the total size of cols*cols, only the first n given packets are used."""
     runner = Runner(num_threads)
     runner.run(
         input_dir,
         output_dir,
         preprocessing_type,
-        MarkovTransitionMatrixFlow,
+        FlowImageTiledFixed,
         min_image_dim,
         max_image_dim,
         min_packets_per_flow,
@@ -277,7 +280,7 @@ def extract_flow_tiled_fixed_image(
         input_dir,
         output_dir,
         preprocessing_type,
-        MarkovTransitionMatrixFlow,
+        FlowImageTiledAuto,
         min_image_dim,
         max_image_dim,
         min_packets_per_flow,

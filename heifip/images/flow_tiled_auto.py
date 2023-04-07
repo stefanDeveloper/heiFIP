@@ -6,6 +6,7 @@ from scapy.all import Packet, raw
 
 from heifip.images import NetworkTrafficImage
 
+
 class FlowImageTiledAuto(NetworkTrafficImage):
     def __init__(
         self,

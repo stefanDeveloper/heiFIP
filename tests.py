@@ -23,16 +23,13 @@ def get_files():
             match = os.path.join(root, filename)
             sub_dir = match.replace(TEST_FOLDER, "")
             packets.append(rdpcap(match))
-    return packets[0:5] # Otherwise we break Python...
+    return packets[0:25] # Otherwise we break Python...
 
 
 @pytest.mark.parametrize('packet', get_files())
-@pytest.mark.parametrize("auto_dim", [True, False])
 @pytest.mark.parametrize("append", [True, False])
 @pytest.mark.parametrize("fill", [0, 255])
 @pytest.mark.parametrize("dim", [4, 16])
-@pytest.mark.parametrize("width", [8, 16])
-@pytest.mark.parametrize("tiled", [True, False])
 @pytest.mark.parametrize(
     "min_packets_per_flow", [0, 4]
 )
@@ -44,12 +41,9 @@ def get_files():
 )
 def test_extractor_flow(
     packet,
-    auto_dim,
     append,
     fill,
     dim,
-    width,
-    tiled,
     min_packets_per_flow,
     max_image_dim,
     min_image_dim,
@@ -68,9 +62,6 @@ def test_extractor_flow(
         remove_duplicates,
         dim,
         fill,
-        width,
-        tiled,
-        auto_dim,
         append,
     )
     # TODO: Assert matrix... if functions worked fine
