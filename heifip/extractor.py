@@ -181,7 +181,10 @@ class FIPExtractor:
     def save_image(self, img, output_dir):
         pil_img = PILImage.fromarray(self.convert(img, 0, 255, np.uint8))
         if not os.path.exists(os.path.realpath(os.path.dirname(output_dir))):
-            os.makedirs(os.path.realpath(os.path.dirname(output_dir)))
+            try:
+                os.makedirs(os.path.realpath(os.path.dirname(output_dir)))
+            except:
+                pass
         pil_img.save(f"{output_dir}_processed.png")
 
     def convert(self, img, target_type_min, target_type_max, target_type):

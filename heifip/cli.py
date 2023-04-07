@@ -295,6 +295,41 @@ def extract_flow_tiled_fixed_image(
 @extract.command(name="markov-flow")
 @add_options(_extract_options)
 @add_options(_flow_options)
+@click.option(
+    "--cols",
+    "cols",
+    type=int,
+    default=4,
+    help="Number of columns for quadratic representation.",
+)
+def extract_markov_image(
+    input_dir,
+    output_dir,
+    num_threads,
+    preprocessing_type,
+    min_image_dim,
+    max_image_dim,
+    min_packets_per_flow,
+    max_packets_per_flow,
+    remove_duplicates,
+):
+    """Extracts packets from PCAP file and converts it into a quadractic Markov Transition Matrix."""
+    runner = Runner(num_threads)
+    runner.run(
+        input_dir,
+        output_dir,
+        preprocessing_type,
+        MarkovTransitionMatrixFlow,
+        min_image_dim,
+        max_image_dim,
+        min_packets_per_flow,
+        max_packets_per_flow,
+        remove_duplicates,
+    )
+
+@extract.command(name="markov-packet")
+@add_options(_extract_options)
+@add_options(_flow_options)
 def extract_markov_image(
     input_dir,
     output_dir,

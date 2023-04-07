@@ -38,6 +38,7 @@ class MarkovTransitionMatrixFlow(MarkovTransitionMatrix):
     def __init__(
         self,
         packets: [Packet],
+        cols: int = 4
     ) -> None:
         MarkovTransitionMatrix.__init__(self)
 
@@ -48,7 +49,7 @@ class MarkovTransitionMatrixFlow(MarkovTransitionMatrix):
             result.append(np.array(m))
         
         # Create tiled image
-        fh = self.__tile_images(result, 4, 16)
+        fh = self.__tile_images(result, cols, 16)
 
         # Convert to int
         self.matrix = fh
