@@ -46,17 +46,18 @@ class MarkovTransitionMatrixFlow(MarkovTransitionMatrix):
             transition = self.bit_array(packet)
             m = self.transition_matrix(transition)
             result.append(np.array(m))
-
+        
+        # TODO Handle square images
         # Get size of total image
         length_total = len(result)
         dim_total = int(np.ceil(np.sqrt(length_total)))
         # Create tiled image
-        fh = self.__tile_images(result, dim_total)
+        fh = self.__tile_images(result, dim_total, dim)
         # Convert to int
         self.matrix = fh
         del packets
 
-    def __tile_images(self, images, cols):
+    def __tile_images(self, images, cols, dim):
         """Tile images of same size to grid with given number of columns.
 
         Args:
@@ -66,32 +67,24 @@ class MarkovTransitionMatrixFlow(MarkovTransitionMatrix):
         Returns:
             ndarray: stitched image
         """
-        # TODO Rework: Something is broken here
-        logging.debug("Building tiled image")
-        images = iter(images)
-        first = True
+        k = 0
         rows = []
-        i = 0
-        while True:
-            try:
-                im = next(images)
-                logging.debug(f"add image, shape: {im.shape}, type: {im.dtype}")
-            except StopIteration:
-                if first:
-                    break
+        for i in range(0, cols):
+            row = None
+            for j in range(0, cols):
+                if len(images) > k:
+                    im = images[k]
                 else:
-                    im = np.zeros_like(im)  # black background
-            if first:
-                row = im  # start next row
-                first = False
-            else:
-                row = np.concatenate((row, im), axis=1)  # append to row
-            i += 1
-            if not i % cols:
-                logging.debug(f"row done, shape: {row.shape}")
-                rows.append(row)  # finished row
-                first = True
-        tiled = np.concatenate(rows)  # stitch rows
+                    im = np.zeros((dim, dim))
+                
+                if row is None:
+                    row = im
+                else:
+                    row = np.concatenate((row, im), axis=1)
+                k += 1
+            rows.append(row)
+        tiled = np.concatenate(rows)
+
         return tiled
 
 class MarkovTransitionMatrixPacket(MarkovTransitionMatrix):

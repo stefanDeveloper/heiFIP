@@ -17,11 +17,11 @@ class PacketImage(NetworkTrafficImage):
     ) -> None:
         NetworkTrafficImage.__init__(self, fill, dim)
         self.auto_dim = auto_dim
-        self.matrix, self.binaries = self.__get_matrix(self.dim, self.auto_dim, packet)
+        self.matrix, self.binaries = self.__get_matrix(self.dim, self.auto_dim, self.fill, packet)
 
         del packet
 
-    def __get_matrix(self, dim: int, auto_dim: int, packet: Packet):
+    def __get_matrix(self, dim: int, auto_dim: int, fill: int, packet: Packet):
         # get Hex data
         hexst = binascii.hexlify(raw(packet.packet))
         # Append octet as integer
@@ -32,8 +32,8 @@ class PacketImage(NetworkTrafficImage):
             dim = int(np.ceil(np.sqrt(length)))
 
         # Create array and shape it to dim
-        fh = np.array(binaries + [self.fill] * (self.dim * self.dim - len(binaries)))
-        fh = fh[0:self.dim * self.dim].reshape(self.dim, self.dim)
+        fh = np.array(binaries + [fill] * (dim * dim - len(binaries)))
+        fh = fh[0:dim * dim].reshape(dim, dim)
 
         fh = np.uint8(fh)
 

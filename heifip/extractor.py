@@ -7,6 +7,8 @@ from scapy.all import Packet
 from heifip.exceptions import FIPWrongParameterException
 from heifip.images import NetworkTrafficImage
 from heifip.images.flow import FlowImage
+from heifip.images.flow_tiled_auto import FlowImageTiledAuto
+from heifip.images.flow_tiled_fixed import FlowImageTiledFixed
 from heifip.images.markovchain import (MarkovTransitionMatrixFlow,
                                        MarkovTransitionMatrixPacket)
 from heifip.images.packet import PacketImage
@@ -107,6 +109,7 @@ class FIPExtractor:
             *args
         ):
         images = []
+        print(image_type == FlowImageTiledFixed)
         if image_type == FlowImage:
             # when no file matches the preprocessing
             if len(packets) == 0 or len(packets) < min_packets_per_flow:
@@ -117,6 +120,32 @@ class FIPExtractor:
                 packets = packets[:max_packets_per_flow]
 
             image = FlowImage(packets, *args)
+            if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                images.append(image.matrix)
+
+        elif image_type == FlowImageTiledFixed:
+            # when no file matches the preprocessing
+            if len(packets) == 0 or len(packets) < min_packets_per_flow:
+                return images
+
+            # cut packets when too many are there
+            if max_packets_per_flow != 0 and len(packets) > max_packets_per_flow:
+                packets = packets[:max_packets_per_flow]
+
+            image = FlowImageTiledFixed(packets, *args)
+            if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
+                images.append(image.matrix)
+
+        elif image_type == FlowImageTiledAuto:
+            # when no file matches the preprocessing
+            if len(packets) == 0 or len(packets) < min_packets_per_flow:
+                return images
+
+            # cut packets when too many are there
+            if max_packets_per_flow != 0 and len(packets) > max_packets_per_flow:
+                packets = packets[:max_packets_per_flow]
+
+            image = FlowImageTiledAuto(packets, *args)
             if self.verify(image.matrix, min_image_dim, max_image_dim, remove_duplicates):
                 images.append(image.matrix)
 
