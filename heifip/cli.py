@@ -312,6 +312,7 @@ def extract_markov_image(
     min_packets_per_flow,
     max_packets_per_flow,
     remove_duplicates,
+    cols
 ):
     """Extracts packets from PCAP file and converts it into a quadractic Markov Transition Matrix."""
     runner = Runner(num_threads)
@@ -325,6 +326,7 @@ def extract_markov_image(
         min_packets_per_flow,
         max_packets_per_flow,
         remove_duplicates,
+        cols
     )
 
 @extract.command(name="markov-packet")
