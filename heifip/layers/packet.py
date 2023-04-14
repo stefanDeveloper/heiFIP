@@ -1,3 +1,4 @@
+import hashlib
 from typing import Type
 
 from scapy.all import Packet, RandMAC
@@ -8,6 +9,7 @@ class FIPPacket:
     def __init__(self, packet, address_mapping={}, layer_map={}):
         self.address_mapping = address_mapping
         self.packet = packet
+        self.hash = hashlib.md5().hexdigest()
 
         if layer_map == {}:
             self.layer_map = self.__get_layers()

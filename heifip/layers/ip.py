@@ -1,8 +1,11 @@
+import hashlib
 from typing import Type
 
-from scapy.all import Packet, RandIP, RandIP6
-from scapy.layers.inet import IP
+from scapy.all import Packet, RandIP, RandIP6, Raw
+from scapy.layers.http import HTTP
+from scapy.layers.inet import IP, TCP, UDP
 from scapy.layers.inet6 import IPv6
+from scapy.layers.tls.all import TLS
 
 from heifip.layers.packet import EtherPacket
 from heifip.plugins.header import CustomIP, CustomIPv6
@@ -13,8 +16,18 @@ class IPPacket(EtherPacket):
         EtherPacket.__init__(self, packet, address_mapping, layer_map)
         if IP in self.layer_map:
             self.__filter_ipv4()
+            self.hash = hashlib.md5(f"{self.packet[IP].version},{self.packet[IP].flags},{self.packet[IP].proto}".encode('utf-8')).hexdigest()
+            if TLS in self.layer_map and not (TCP in self.layer_map or UDP in self.layer_map):
+                self.packet[IP].remove_payload()
+            if Raw in self.layer_map and not (TCP in self.layer_map or UDP in self.layer_map or HTTP in self.layer_map):
+                self.packet[IP].remove_payload()
         elif IPv6 in self.layer_map:
             self.__filter_ipv6()
+            self.hash = hashlib.md5(f"{self.packet[IPv6].version},{self.packet[IPv6].tc},{self.packet[IPv6].hlim}".encode('utf-8')).hexdigest()
+            if TLS in self.layer_map and not (TCP in self.layer_map or UDP in self.layer_map):
+                self.packet[IPv6].remove_payload()
+            if Raw in self.layer_map and not (TCP in self.layer_map or UDP in self.layer_map or HTTP in self.layer_map):
+                self.packet[IPv6].remove_payload()
 
     def __filter_ipv4(self):
         previous_src = self.packet[IP].src

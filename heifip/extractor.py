@@ -13,6 +13,7 @@ from heifip.images.markovchain import (MarkovTransitionMatrixFlow,
                                        MarkovTransitionMatrixPacket)
 from heifip.images.packet import PacketImage
 from heifip.layers import PacketProcessor, PacketProcessorType
+from heifip.layers.packet import FIPPacket
 
 
 class FIPExtractor:
@@ -27,12 +28,12 @@ class FIPExtractor:
         if max_image_dim != 0 and (max_image_dim < image.shape[0] or max_image_dim < image.shape[1]):
             return False
 
-        if remove_duplicates:
-            im_str = image.tobytes()
-            if im_str in self.images_created:
-                return False 
-            else:
-                self.images_created.append(im_str)
+        # if remove_duplicates:
+        #     im_str = image.tobytes()
+        #     if im_str in self.images_created:
+        #         return False 
+        #     else:
+        #         self.images_created.append(im_str)
 
         return True
 
@@ -69,7 +70,7 @@ class FIPExtractor:
 
     def create_image_from_packet(
             self,
-            packets: [Packet],
+            packets: [FIPPacket],
             preprocessing_type: PacketProcessorType = PacketProcessorType.NONE,
             image_type: NetworkTrafficImage = PacketImage,
             min_image_dim: int = 0,
@@ -98,7 +99,7 @@ class FIPExtractor:
     
     def __create_matrix(
             self,
-            packets: [Packet],
+            packets: [FIPPacket],
             preprocessing_type: PacketProcessorType = PacketProcessorType.NONE,
             image_type: NetworkTrafficImage = PacketImage,
             min_image_dim: int = 0,
@@ -179,7 +180,7 @@ class FIPExtractor:
         return images
 
     def save_image(self, img, output_dir):
-        pil_img = PILImage.fromarray(self.convert(img, 0, 255, np.uint8))
+        pil_img = PILImage.fromarray(img)
         if not os.path.exists(os.path.realpath(os.path.dirname(output_dir))):
             try:
                 os.makedirs(os.path.realpath(os.path.dirname(output_dir)))

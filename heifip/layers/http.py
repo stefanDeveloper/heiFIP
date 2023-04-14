@@ -1,7 +1,8 @@
+import hashlib
 from typing import Type
 
 from scapy.all import Packet
-from scapy.layers.http import HTTPRequest, HTTPResponse
+from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
 
 from heifip.layers.transport import TransportPacket
 from heifip.plugins.header import (CustomHTTP, CustomHTTP_Request,
@@ -18,6 +19,10 @@ class HTTPPacket(TransportPacket):
 class HTTPRequestPacket(HTTPPacket):
     def __init__(self, packet: Packet, address_mapping={}, layer_map={}):
         HTTPPacket.__init__(self, packet, address_mapping, layer_map)
+        # self.hash = hashlib.md5(f"{self.packet[HTTPRequest].Path},{self.packet[HTTPRequest].Method},{self.packet[HTTPRequest].Accept}".encode('utf-8')).hexdigest()
+        self.hash = hashlib.md5(f"{self.packet[HTTPRequest].Method},{self.packet[HTTPRequest].Accept}".encode('utf-8')).hexdigest()
+        if Raw in self.layer_map:
+            self.packet[HTTPRequest].remove_payload()
 
     def header_preprocessing(self):
         layer_copy = self.packet[HTTPRequest]
@@ -44,6 +49,10 @@ class HTTPRequestPacket(HTTPPacket):
 class HTTPResponsePacket(HTTPPacket):
     def __init__(self, packet: Packet, address_mapping={}, layer_map={}):
         HTTPPacket.__init__(self, packet, address_mapping, layer_map)
+        # self.hash = hashlib.md5(f"{self.packet[HTTPResponse].Server},{self.packet[HTTPResponse].Status_Code},{self.packet[HTTPResponse].Connection}".encode('utf-8')).hexdigest()
+        self.hash = hashlib.md5(f"{self.packet[HTTPResponse].Status_Code},{self.packet[HTTPResponse].Connection}".encode('utf-8')).hexdigest()
+        if Raw in self.layer_map:
+            self.packet[HTTPResponse].remove_payload()
 
     def header_preprocessing(self):
         layer_copy = self.packet[HTTPResponse]

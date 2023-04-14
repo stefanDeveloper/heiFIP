@@ -1,10 +1,12 @@
 import os
+import pickle
 from abc import ABC
 from enum import Enum, unique
 from typing import Type
 
-from scapy.all import (Packet, RandIP, RandIP6, RandMAC, Raw, rdpcap, sniff,
-                       wrpcap)
+import cryptography
+from scapy.all import (Packet, RandIP, RandIP6, RandMAC, Raw, load_layer,
+                       rdpcap, sniff, wrpcap)
 from scapy.layers.dns import DNS
 from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
 from scapy.layers.inet import IP, TCP, UDP, Ether
@@ -41,7 +43,11 @@ class PacketProcessor:
         self,
         file_extension="pcap",
     ) -> None:
-        pass
+        self.hash_dict = set()
+        # if os.path.isfile('hashes_pkt.pkl'):
+        #     with open('hashes_pkt.pkl', 'rb') as f:
+        #         self.hash_dict = pickle.load(f)
+        load_layer("tls")
 
     def write_packet(self) -> None:
         # Write pcap
@@ -53,15 +59,18 @@ class PacketProcessor:
         # Read PCAP file with Scapy
         packets = []
         # TODO Only read max number of packets
-        pcap = sniff(offline=file)
+        pcap = sniff(offline=file, count=64)
         for pkt in pcap:
             # Start preprocessing for each packet
             processed_packet = self.__preprocessing(pkt, preprocessing_type)
             # TODO Run extract here to reduce amount of loops in code. Atm very inefficient for computation time and memory
             # In case packet returns None
             if processed_packet != None:
-                packets.append(processed_packet)
+                if not processed_packet.hash in self.hash_dict:
+                    self.hash_dict.add(processed_packet.hash)
+                    packets.append(processed_packet)
         return packets
+
 
     def read_packets_packet(self, packet: [Packet], preprocessing_type: PacketProcessorType) -> [FIPPacket]:
         # Read PCAP file with Scapy
@@ -71,7 +80,9 @@ class PacketProcessor:
             processed_packet = self.__preprocessing(pkt, preprocessing_type)
             # In case packet returns None
             if processed_packet != None:
-                packets.append(processed_packet)
+                if not processed_packet.hash in self.hash_dict:
+                    self.hash_dict.add(processed_packet.hash)
+                    packets.append(processed_packet)
         return packets
 
     def __preprocessing(self, packet: Packet, preprocessing_type: PacketProcessorType) -> FIPPacket:
@@ -92,7 +103,7 @@ class PacketProcessor:
         elif Ether in fippacket.layer_map:
             fippacket = fippacket.convert(EtherPacket, fippacket)
 
-        if preprocessing_type == PacketProcessorType.HEADER:
+        if preprocessing_type == "HEADER":
             fippacket.header_preprocessing()
 
         return fippacket

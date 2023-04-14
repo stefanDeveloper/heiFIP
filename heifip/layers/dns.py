@@ -1,3 +1,4 @@
+import hashlib
 from typing import Type
 
 from scapy.all import Packet
@@ -10,17 +11,18 @@ from heifip.plugins.header import CustomDNS, CustomDNSQR, CustomDNSRR
 class DNSPacket(TransportPacket):
     def __init__(self, packet: Packet, address_mapping={}, layer_map={}) -> None:
         TransportPacket.__init__(self, packet, address_mapping, layer_map)
+        self.hash = hashlib.md5(f"{self.packet[DNS].qr}".encode('utf-8')).hexdigest()
     
     def header_preprocessing(self):
         # TODO: Fix issue with DNS processing
-        # if self.packet[DNS].qd:
-        #     self.__header_preprocessing_message_type(self.packet, "qd")
-        # if self.packet[DNS].an:
-        #     self.__header_preprocessing_message_type(self.packet, "an")
-        # if self.packet[DNS].ns:
-        #     self.__header_preprocessing_message_type(self.packet, "ns")
-        # if self.packet[DNS].ar:
-        #     self.__header_preprocessing_message_type(self.packet, "ar")
+        if self.packet[DNS].qd:
+            self.__header_preprocessing_message_type(self.packet, "qd")
+        if self.packet[DNS].an:
+            self.__header_preprocessing_message_type(self.packet, "an")
+        if self.packet[DNS].ns:
+            self.__header_preprocessing_message_type(self.packet, "ns")
+        if self.packet[DNS].ar:
+            self.__header_preprocessing_message_type(self.packet, "ar")
 
         layer_copy = self.packet[DNS]
 
@@ -51,23 +53,19 @@ class DNSPacket(TransportPacket):
         if message_type == "qd":
             new_message = CustomDNSQR(qname=message.qname, qtype=message.qtype)
             
-            message = message.payload
-            while message:
+            while message:=message.payload:
                 new_message /= CustomDNSQR(
                     qname=message.qname,
                     qtype=message.qtype,
                 )
         else:
-            if message_type != "ar":
-                new_message = CustomDNSRR(
-                    rrname=message.rrname, type=message.type, ttl=message.ttl
-                )
+            new_message = CustomDNSRR(
+                rrname=message.rrname, type=message.type
+            )
 
-                message = message.payload
-                while message:
-                    new_message /= CustomDNSRR(
-                        rrname=message.rrname, type=message.type, ttl=message.ttl
-                    )
+            while message:=message.payload:
+                new_message /= CustomDNSRR(
+                    rrname=message.rrname, type=message.type
+                )
         
-        if message_type != "ar":
-            setattr(packet[DNS], message_type, new_message)
+        setattr(packet[DNS], message_type, new_message)

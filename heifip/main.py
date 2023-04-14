@@ -13,6 +13,8 @@ from tqdm import tqdm
 from heifip.extractor import FIPExtractor
 from heifip.images.flow import FlowImage
 
+import pickle
+
 
 class Runner:
     def __init__(self, thread_number) -> None:
@@ -79,3 +81,5 @@ class Runner:
             thread.start()
         file_queue.join()
         pbar.close()
+        # with open('hashes_pkt.pkl', 'wb') as f:
+        #     pickle.dump(self.extractor.processor.hash_dict, f)
