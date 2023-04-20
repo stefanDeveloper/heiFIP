@@ -67,7 +67,8 @@ class PacketProcessor:
             # In case packet returns None
             if processed_packet != None:
                 if not processed_packet.hash in self.hash_dict:
-                    self.hash_dict.add(processed_packet.hash)
+                    # TODO Turn off/on hash filtering
+                    # self.hash_dict.add(processed_packet.hash)
                     packets.append(processed_packet)
         return packets
 
