@@ -19,8 +19,7 @@ class HTTPPacket(TransportPacket):
 class HTTPRequestPacket(HTTPPacket):
     def __init__(self, packet: Packet, address_mapping={}, layer_map={}):
         HTTPPacket.__init__(self, packet, address_mapping, layer_map)
-        # self.hash = hashlib.md5(f"{self.packet[HTTPRequest].Path},{self.packet[HTTPRequest].Method},{self.packet[HTTPRequest].Accept}".encode('utf-8')).hexdigest()
-        self.hash = hashlib.md5(f"{self.packet[HTTPRequest].Method},{self.packet[HTTPRequest].Accept}".encode('utf-8')).hexdigest()
+        self.hash = hashlib.md5(f"{self.packet[HTTPRequest].Path},{self.packet[HTTPRequest].Method},{self.packet[HTTPRequest].Accept}".encode('utf-8')).hexdigest()
         if Raw in self.layer_map:
             self.packet[HTTPRequest].remove_payload()
 
@@ -49,8 +48,7 @@ class HTTPRequestPacket(HTTPPacket):
 class HTTPResponsePacket(HTTPPacket):
     def __init__(self, packet: Packet, address_mapping={}, layer_map={}):
         HTTPPacket.__init__(self, packet, address_mapping, layer_map)
-        # self.hash = hashlib.md5(f"{self.packet[HTTPResponse].Server},{self.packet[HTTPResponse].Status_Code},{self.packet[HTTPResponse].Connection}".encode('utf-8')).hexdigest()
-        self.hash = hashlib.md5(f"{self.packet[HTTPResponse].Status_Code},{self.packet[HTTPResponse].Connection}".encode('utf-8')).hexdigest()
+        self.hash = hashlib.md5(f"{self.packet[HTTPResponse].Server},{self.packet[HTTPResponse].Status_Code},{self.packet[HTTPResponse].Connection}".encode('utf-8')).hexdigest()
         if Raw in self.layer_map:
             self.packet[HTTPResponse].remove_payload()
 
