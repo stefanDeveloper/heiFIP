@@ -1,9 +1,13 @@
-cff-version: 1.2.0
+cff-version: 1.1.0
 message: "If you use this software, please cite it as below."
 authors:
-- family-names: "Stefan"
-  given-names: "Machmeier"
-  orcid: "https://orcid.org/0000-0002-7028-1755"
+  - family-names: Machmeier
+    given-names: Stefan
+    orcid: "https://orcid.org/0000-0002-7028-1755"
+  - family-names: Heuveline
+    given-names: Vincent
+    orcid: "https://orcid.org/0000-0002-2217-7558"
 title: "heiFIP: A network traffic image converter"
-version: 1.0.0
-date-released: 2023-01-01
+doi: "10.5281/zenodo.8348868"
+version: v1.1.1
+date-released: 2023-09-15
