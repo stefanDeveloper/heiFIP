@@ -6,13 +6,11 @@ except ImportError:
     )
 
 from heifip import CONTEXT_SETTINGS, __version__
-from heifip.images import NetworkTrafficImage
 from heifip.images.flow import FlowImage
 from heifip.images.flow_tiled_auto import FlowImageTiledAuto
 from heifip.images.flow_tiled_fixed import FlowImageTiledFixed
-from heifip.images.markovchain import (MarkovTransitionMatrixFlow,
-                                       MarkovTransitionMatrixPacket)
-from heifip.images.packet import Packet
+from heifip.images.markovchain import (MarkovTransitionMatrixFlow)
+from heifip.images.packet import PacketImage
 from heifip.layers import PacketProcessorType
 from heifip.main import Runner
 
