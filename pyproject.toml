@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "heifip"
-version = "1.1.0"
+version = "1.1.1"
 authors = [
   { name="Stefan Machmeier", email="stefan.machmeier@uni-heidelberg.de" },
 ]
@@ -53,7 +53,7 @@ exclude = [
 
 [tool.poetry]
 name = "heiFIP"
-version = "1.1.0"
+version = "1.1.1"
 description = "A tool to convert network traffic into images for ML use cases."
 license = "EUPL-1.2"
 authors = ["Stefan Machmeier"]
