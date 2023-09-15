@@ -47,6 +47,14 @@ However, we plan to adapt our library to support **online** network data too to 
   </td>
 </tr>
 <tr>
+  <td><b>Citation</b></td>
+  <td>
+    <a href="https://zenodo.org/badge/latestdoi/522472839">
+    <img src="https://zenodo.org/badge/522472839.svg?style=for-the-badge" alt="Citation" />
+    </a>
+  </td>
+</tr>
+<tr>
   <td><b>Continuous Integration</b></td>
   <td>
     <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_linux.yml">
