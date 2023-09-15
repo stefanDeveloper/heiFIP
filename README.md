@@ -13,7 +13,7 @@ However, we plan to adapt our library to support **online** network data too to 
 <tr>
   <td><b>Live Notebook</b></td>
   <td>
-    <a href="https://mybinder.org/v2/gh/heifip/heifip-tutorials/main?filepath=demo_notebook.ipynb">
+    <a href="https://mybinder.org/v2/gh/stefanDeveloper/heiFIP-tutorials/HEAD?labpath=demo_notebook.ipynb">
     <img src="https://img.shields.io/badge/notebook-launch-blue?logo=jupyter&style=for-the-badge" alt="live notebook" />
     </a>
   </td>
