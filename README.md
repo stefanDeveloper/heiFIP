@@ -190,24 +190,15 @@ Simply run:
 pip install .
 ```
 
+### Publications that use heiFIP
+
+- [A Generalizable Approach for Network Flow Image Representation for Deep Learning] - CSNet 23
+- [Explainable artificial intelligence for improving a session-based malware traffic classification with deep learning] - SSCI 23
+
+
 ## Credits
 
 [NFStream](https://github.com/nfstream/nfstream) for the inspiration of the `README.md` and workflow testing.
-
-### Citation
-
-Currently, we haven't publish any paper about our approach yet.
-If you use heiFIP in a scientific publication, we would appreciate citations to the following article:
-
-```latex
-@software{Stefan_heiFIP_A_network_2023,
-  author = {Stefan, Machmeier},
-  month = {1},
-  title = {{heiFIP: A network traffic image converter}},
-  version = {1.0.0},
-  year = {2023}
-}
-```
 
 ### Authors
 
