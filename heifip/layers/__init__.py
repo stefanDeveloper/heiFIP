@@ -4,9 +4,8 @@ from abc import ABC
 from enum import Enum, unique
 from typing import Type
 
-import cryptography
-from scapy.all import (Packet, RandIP, RandIP6, RandMAC, Raw, load_layer,
-                       rdpcap, sniff, wrpcap)
+from scapy.all import (Packet,load_layer,
+                       sniff, wrpcap)
 from scapy.layers.dns import DNS
 from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
 from scapy.layers.inet import IP, TCP, UDP, Ether

@@ -1,7 +1,5 @@
-import logging
-
 import numpy as np
-from scapy.all import Packet, chexdump, hexdump, raw
+from scapy.all import Packet
 
 from heifip.images import NetworkTrafficImage
 

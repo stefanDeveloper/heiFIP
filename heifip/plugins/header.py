@@ -1,9 +1,8 @@
-from scapy.all import (DNS, IP, IP_PROTOS, TCP, UDP, BitEnumField, BitField,
+from scapy.all import (IP_PROTOS, BitEnumField, BitField,
                        ByteEnumField, ByteField, DNSQRField, DNSRRField,
-                       FlagsField, IntField, IPv6, Packet, ShortEnumField,
+                       FlagsField, IntField, Packet, ShortEnumField,
                        StrField, TCPOptionsField, XByteField)
 from scapy.layers.dns import DNSStrField, InheritOriginDNSStrPacket, dnstypes
-from scapy.layers.http import HTTPRequest, HTTPResponse
 from scapy.layers.inet6 import ipv6nh
 
 

@@ -1,11 +1,10 @@
 import hashlib
-from typing import Type
 
-from scapy.all import Packet
-from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
+from scapy.all import Packet, Raw
+from scapy.layers.http import HTTPRequest, HTTPResponse
 
 from heifip.layers.transport import TransportPacket
-from heifip.plugins.header import (CustomHTTP, CustomHTTP_Request,
+from heifip.plugins.header import (CustomHTTP_Request,
                                    CustomHTTP_Response)
 
 

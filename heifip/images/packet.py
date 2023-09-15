@@ -1,5 +1,4 @@
 import binascii
-import logging
 
 import numpy as np
 from scapy.all import Packet, raw

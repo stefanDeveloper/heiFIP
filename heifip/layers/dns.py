@@ -1,6 +1,3 @@
-import hashlib
-from typing import Type
-
 from scapy.all import Packet
 from scapy.layers.dns import DNS
 

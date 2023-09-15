@@ -1,7 +1,6 @@
 import hashlib
-from typing import Type
 
-from scapy.all import Packet, RandMAC
+from scapy.all import RandMAC
 from scapy.layers.inet import Ether
 
 
