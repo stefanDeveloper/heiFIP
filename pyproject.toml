@@ -58,6 +58,16 @@ description = "A tool to convert network traffic into images for ML use cases."
 license = "EUPL-1.2"
 authors = ["Stefan Machmeier"]
 
+[tool.poetry.dependencies]
+scapy = '>=2.5.0'
+Pillow = '>=9.4.0'
+numpy = '>=1.19.5'
+click = '>=8.1.3'
+tqdm = '>=4.64.1'
+click-help-colors = '>=0.9.1'
+pytest = '>=7.2.2'
+cryptography = '>=1.0.0'
+
 [[tool.poetry_bumpversion.replacements]]
 files = ["heifip/__init__.py", "heifip/exceptions/__init__.py", "heifip/images/__init__.py", "heifip/layers/__init__.py", "heifip/plugins/__init__.py", "heifip/protocols/__init__.py"]
 search = '__version__ = "{current_version}"'
