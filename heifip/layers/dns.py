@@ -8,8 +8,6 @@ from heifip.plugins.header import CustomDNS, CustomDNSQR, CustomDNSRR
 class DNSPacket(TransportPacket):
     def __init__(self, packet: Packet, address_mapping={}, layer_map={}) -> None:
         TransportPacket.__init__(self, packet, address_mapping, layer_map)
-        # if DNS in self.layer_map:
-        #     self.hash = hashlib.md5(f"{self.packet[DNS].qr}".encode('utf-8')).hexdigest()
     
     def header_preprocessing(self):
         # TODO: Fix issue with DNS processing

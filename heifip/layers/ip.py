@@ -1,5 +1,4 @@
 import hashlib
-from typing import Type
 
 from scapy.all import Packet, RandIP, RandIP6, Raw
 from scapy.layers.http import HTTP

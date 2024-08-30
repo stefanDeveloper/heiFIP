@@ -1,8 +1,5 @@
 import os
-import pickle
-from abc import ABC
 from enum import Enum, unique
-from typing import Type
 
 from scapy.all import (Packet,load_layer,
                        sniff, wrpcap)
@@ -11,7 +8,6 @@ from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
 from scapy.layers.inet import IP, TCP, UDP, Ether
 from scapy.layers.inet6 import IPv6
 
-from heifip.exceptions import FIPWrongParameterException
 from heifip.layers.dns import DNSPacket
 from heifip.layers.http import (HTTPPacket, HTTPRequestPacket,
                                 HTTPResponsePacket)
@@ -43,9 +39,6 @@ class PacketProcessor:
         file_extension="pcap",
     ) -> None:
         self.hash_dict = set()
-        # if os.path.isfile('hashes_pkt.pkl'):
-        #     with open('hashes_pkt.pkl', 'rb') as f:
-        #         self.hash_dict = pickle.load(f)
         load_layer("tls")
 
     def write_packet(self) -> None:

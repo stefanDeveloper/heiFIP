@@ -1,8 +1,7 @@
 import hashlib
-from typing import Type
 
 from scapy.all import Packet, Raw
-from scapy.layers.http import HTTP, HTTPRequest, HTTPResponse
+from scapy.layers.http import HTTP
 from scapy.layers.inet import TCP, UDP
 from scapy.layers.tls.all import TLS
 
