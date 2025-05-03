@@ -1,0 +1,11 @@
+prefix=/usr/local
+exec_prefix=${prefix}
+libdir=${exec_prefix}/lib
+includedir=${prefix}/include
+
+Name: libcrafter
+Description: A C++ Packet manipulation library.
+Version: 0.3
+URL: http://code.google.com/p/libcrafter/
+Libs: -L${libdir} -lcrafter
+Cflags: -I${includedir}/crafter
