@@ -43,10 +43,10 @@ find_package(OpenCV REQUIRED
     COMPONENTS core imgcodecs   
 )
 
-add_executable(main main.cpp)
+add_executable(heiFIP cli.cpp)
 
-target_include_directories(main PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(main
+target_include_directories(heiFIP PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(heiFIP
     Pcap++
     Packet++
     Common++
