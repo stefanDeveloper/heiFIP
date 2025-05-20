@@ -1,10 +1,11 @@
 #pragma once
 
 #include <iostream>
+#include <cmath>
 #include "PcapHeaders.h"
 #include <vector>
 #include <iomanip>
-#include <vector>
+#include <bitset>
 #include <memory>
 #include <sstream>
 

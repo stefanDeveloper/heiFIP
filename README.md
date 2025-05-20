@@ -23,6 +23,7 @@ A C++ command‑line tool to process network capture files (PCAP), generate vari
 * **CMake**: Version ≥ 3.15
 * **PcapPlusPlus**: Installed system‑wide or built locally. ([https://github.com/seladb/PcapPlusPlus](https://github.com/seladb/PcapPlusPlus))
 * **OpenSSL**: For MD5 hashing (libcrypto).
+* **OpenCV**: Version ≥ 4.0 for image handling and saving (e.g., cv::imwrite).
 * **pthread**: POSIX threads (Linux/macOS). Windows users require linking against `-lws2_32` and `-lIPHLPAPI`.
 
 Optional:
@@ -74,7 +75,6 @@ make -j$(nproc)
 ```
 
 ### Options
-|-------------------- | -------------------------------------------------------------- |
 | Flag                | Description                                                    |
 | ------------------- | -------------------------------------------------------------- |
 | `-i`, `--input`     | Input PCAP file path                                           |
@@ -95,7 +95,6 @@ make -j$(nproc)
 | `--max-pkts`        | Maximum packets per flow                                       |
 | `--remove-dup`      | Remove duplicate flows/packets by hash                         |
 | `-h`, `--help`      | Show this help message                                         |
-| ___________________ | ______________________________________________________________ |
 
 ## Extending
 
