@@ -3,7 +3,6 @@
 #include <variant>
 #include <string>
 #include <cassert>
-#include <filesystem>
 #include <thread>
 #include <atomic>
 #include <getopt.h>
