@@ -61,6 +61,8 @@ class FIPPacket {
                 return "Ethernet";
             case pcpp::IPv4:
                 return "IPv4";
+            case pcpp::IPv6:
+                return "IPv6";
             case pcpp::TCP:
                 return "TCP";
             case pcpp::HTTP:

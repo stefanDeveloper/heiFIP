@@ -7,7 +7,6 @@
 #include <iterator>
 #include <cstring>
 #include <cstdint>
-#include <crafter.h>
 #include <memory>
 #include <array>
 #include "heiFIBPacketImage.cpp"
@@ -111,25 +110,4 @@ private:
         }
         return tiled;
     }
-
-    std::vector<uint8_t> hexlify(const Crafter::Packet& packet) {
-
-        // Create a vector to store the bytes as decimal integers
-        std::vector<uint8_t> hex_data;
-
-        // Use copy of packet to avoid modification
-        Crafter::Packet copied_packet = packet;
-        
-        // Access the raw bytes of the crafted packet
-        const uint8_t* raw_bytes = copied_packet.GetRawPtr();
-        size_t packet_size = copied_packet.GetSize();
-
-        // Push each byte individually into the vector
-        for (size_t i = 0; i < packet_size; ++i) {
-            hex_data.push_back(static_cast<uint8_t>(raw_bytes[i]));
-        }
-
-        return hex_data;
-    }
-
 };

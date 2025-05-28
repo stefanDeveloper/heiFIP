@@ -6,10 +6,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 include_directories(/usr/local/include)
 
+#set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_C_FLAGS_DEBUG "-g")
-
 add_compile_options(-Wno-deprecated-declarations)
 
 if (EXISTS "/opt/homebrew")
@@ -47,6 +47,18 @@ add_executable(heiFIP cli.cpp)
 
 target_include_directories(heiFIP PRIVATE ${OpenCV_INCLUDE_DIRS})
 target_link_libraries(heiFIP
+    Pcap++
+    Packet++
+    Common++
+    pcap
+    ${OPENSSL_LIBRARIES}
+    ${OpenCV_LIBS}
+)
+
+add_executable(main main.cpp)
+
+target_include_directories(main PRIVATE ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(main
     Pcap++
     Packet++
     Common++

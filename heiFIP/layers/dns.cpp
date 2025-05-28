@@ -28,20 +28,35 @@ public:
      * CustomDNSRR layers as needed before lower-layer checks.
      */
     void header_preprocessing() override {
-        // Locate original DNS layer
-        pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-        pcpp::DnsLayer* origDns = temporaryPacket.getLayerOfType<pcpp::DnsLayer>();
-        pcpp::dnshdr* dnsHeader =  origDns->getDnsHeader();
-        if (!origDns) {
-            TransportPacket::header_preprocessing();
+
+         // 1) Find the DNS layer first for DNS preprocessing
+        pcpp::Packet temporaryPacketForMessageProcessing = pcpp::Packet(getRawPacket().get());
+        pcpp::DnsLayer* oldDNSForMessageProcessing = temporaryPacketForMessageProcessing.getLayerOfType<pcpp::DnsLayer>();
+        if (!oldDNSForMessageProcessing) {
             return;
         }
 
         // Preprocess each section if present
-        if (origDns->getQueryCount() > 0)        headerPreprocessingMessageType(origDns, "qd");
-        if (origDns->getAnswerCount() > 0)          headerPreprocessingMessageType(origDns, "an");
-        if (origDns->getAuthorityCount() >0) headerPreprocessingMessageType(origDns, "ns");
-        if (origDns->getAdditionalRecordCount() > 0) headerPreprocessingMessageType(origDns, "ar");
+        if (oldDNSForMessageProcessing->getQueryCount() > 0) {
+            headerPreprocessingMessageType(oldDNSForMessageProcessing, "qd");
+        }
+
+        if (oldDNSForMessageProcessing->getAnswerCount() > 0) {
+            headerPreprocessingMessageType(oldDNSForMessageProcessing, "an");
+        }
+
+        if (oldDNSForMessageProcessing->getAuthorityCount() >0) {
+            headerPreprocessingMessageType(oldDNSForMessageProcessing, "ns");
+        }
+
+        if (oldDNSForMessageProcessing->getAdditionalRecordCount() > 0) {
+            headerPreprocessingMessageType(oldDNSForMessageProcessing, "ar");
+        }
+
+        // 2) Create a second temporary packet now on the manipulated rawPacket where the new CustomDNS layer is swapped in
+        pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
+        pcpp::DnsLayer* oldDNS = temporaryPacket.getLayerOfType<pcpp::DnsLayer>();
+        pcpp::dnshdr* dnsHeader =  oldDNS->getDnsHeader();
 
         // Build new CustomDNS header
         CustomDNS* customDns = new CustomDNS();
@@ -55,14 +70,22 @@ public:
         customDns->ad      = dnsHeader->authenticData;
         customDns->cd      = dnsHeader->checkingDisabled;
         customDns->rcode   = static_cast<uint8_t>(dnsHeader->responseCode);
-        customDns->qdCount = origDns->getQueryCount();
-        customDns->anCount = origDns->getAnswerCount();
-        customDns->nsCount = origDns->getAuthorityCount();
-        customDns->arCount = origDns->getAdditionalRecordCount();
+        customDns->qdCount = oldDNS->getQueryCount();
+        customDns->anCount = oldDNS->getAnswerCount();
+        customDns->nsCount = oldDNS->getAuthorityCount();
+        customDns->arCount = oldDNS->getAdditionalRecordCount();
 
-        // Replace original DNS layer with custom header
-        temporaryPacket.removeLayer(pcpp::DNS);
-        temporaryPacket.addLayer(customDns);
+        // 3) Insert your custom TCP layer right after whatever came before the old one
+        pcpp::Layer* prev = oldDNS->getPrevLayer();
+        temporaryPacket.insertLayer(prev, customDns);
+
+        // 4) Now safely remove the old TCP layer object
+        temporaryPacket.detachLayer(oldDNS);
+        delete oldDNS;
+
+        // 5) If your new layer changed any length/checksum fields upstream,
+        //    recompute them on the packet
+        temporaryPacket.computeCalculateFields();                    
         const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
         int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
         timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
@@ -71,9 +94,8 @@ public:
         uint8_t* dataCopy = new uint8_t[modifiedDataLen];
         std::memcpy(dataCopy, modifiedData, modifiedDataLen);
 
+        // 6) Replace the RawPacket in FIPPacket
         setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
-        // Continue up the chain
-        TransportPacket::header_preprocessing();
     }
     private:
 

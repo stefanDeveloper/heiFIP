@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <opencv2/opencv.hpp>
 #include <string>
+#include <iostream>
 
 struct FlowImageArgs {
     size_t dim;
@@ -80,10 +81,15 @@ class FIPExtractor {
         bool verify(const ImgType& image, size_t minImageDim, size_t maxImageDim, bool removeDuplicates) {
             size_t height = image.size();
             size_t width = image[0].size();
-            if (height < minImageDim || width < minImageDim)
+            if (height < minImageDim || width < minImageDim) {
+                std::cout << "[!] Image not created due to minumum height or width restriction" << std::endl;
                 return false;
-            if (maxImageDim != 0 && (height > maxImageDim || width > maxImageDim))
+            }
+            
+            if (maxImageDim != 0 && (height > maxImageDim || width > maxImageDim)) {
+                std::cout << "[!] Image not created due to maximum height or width restriction" << std::endl;
                 return false;
+            }
             // if (removeDuplicates) {
             //     std::string raw(reinterpret_cast<const char*>(image.data()), image.dataSize());
             //     if (imagesCreatedSet.count(raw))
@@ -111,7 +117,7 @@ class FIPExtractor {
                 throw std::runtime_error("Input file does not exist");
             }
         
-            std::vector<std::unique_ptr<FIPPacket>> processed_packets = processor.readPacketsFile(input_file, preprocessing_type);
+            std::vector<std::unique_ptr<FIPPacket>> processed_packets = processor.readPacketsFile(input_file, preprocessing_type, remove_duplicates);
             return createMatrix(
                 processed_packets,
                 preprocessing_type,
@@ -138,7 +144,7 @@ class FIPExtractor {
         ) {
 
             // Process packets using the PacketProcessor 
-            std::vector<std::unique_ptr<FIPPacket>> processed_packets = processor.readPacketsList(packets, preprocessing_type);    
+            std::vector<std::unique_ptr<FIPPacket>> processed_packets = processor.readPacketsList(packets, preprocessing_type, remove_duplicates);    
             // Create images using the __create_matrix method
             return createMatrix(
                 processed_packets,

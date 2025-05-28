@@ -141,7 +141,9 @@ class TransportPacket : public IPPacket {
             // 1) Find the TCP layer you want to replace
             pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
             pcpp::TcpLayer* oldTcp = temporaryPacket.getLayerOfType<pcpp::TcpLayer>();
-            if (!oldTcp) return;  
+            if (!oldTcp) { 
+                return;  
+            }
 
             // 2) Create your replacement CustomTCPLayer* customTcp = header_preprocessing_tcp(oldTcp);
             CustomTCPLayer* customLayer = header_preprocessing_tcp(oldTcp);
@@ -153,7 +155,6 @@ class TransportPacket : public IPPacket {
             // 4) Now safely remove the old TCP layer object
             temporaryPacket.detachLayer(oldTcp);
             delete oldTcp;
-
 
             // 5) If your new layer changed any length/checksum fields upstream,
             //    recompute them on the packet

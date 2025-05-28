@@ -575,7 +575,6 @@ class CustomDNS : public pcpp::Layer {
         // Serialize DNS header into m_Data
         void computeCalculateFields() override {
             m_DataLen = 12;
-            delete[] m_Data;
             m_Data = new uint8_t[m_DataLen];
             size_t offset = 0;
     

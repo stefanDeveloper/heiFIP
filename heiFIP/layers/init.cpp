@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include <iostream>
 #include <unordered_set>
 #include <PcapFileDevice.h>
 #include <Packet.h>
@@ -92,7 +93,8 @@ class PacketProcessor {
      * @param type preprocessing type (NONE or HEADER)
      * @param maxCount maximum number of packets to read (default 64)
      */
-    std::vector<std::unique_ptr<FIPPacket>> readPacketsFile(const std::string& filename, PacketProcessorType type, size_t maxCount = 64) {
+    std::vector<std::unique_ptr<FIPPacket>> readPacketsFile(const std::string& filename, PacketProcessorType type, 
+        bool removeDuplicates = false, size_t maxCount = 64) {
         
         std::vector<std::unique_ptr<FIPPacket>> result;
         pcpp::PcapFileReaderDevice reader(filename);
@@ -112,8 +114,15 @@ class PacketProcessor {
             if (fippkt && !fippkt->getHash().empty()) {
                 auto res = hashDict.insert(fippkt->getHash());
                 if (res.second) { // was inserted, new
-                result.push_back(std::move(fippkt));
+                    result.push_back(std::move(fippkt));
                 } else {
+                    // This case occurs if two packets are the same (have the same hash value)
+                    // which results in the packet not being used if remove_duplicates is set
+                    if (!removeDuplicates) {
+                        result.push_back(std::move(fippkt));
+                    } else {
+                        std::cout << "[-] Warning: Duplicate packet with hash value " << fippkt->getHash() << " removed" << std::endl;
+                    }
                 }
             } else if (fippkt) {
                 result.push_back(std::move(fippkt));
@@ -126,7 +135,7 @@ class PacketProcessor {
     }
 
     std::vector<std::unique_ptr<FIPPacket>> readPacketsList(const std::vector<std::unique_ptr<pcpp::RawPacket>>& inputPackets,
-    PacketProcessorType type) {    
+    PacketProcessorType type, bool removeDuplicates = false) {    
         std::vector<std::unique_ptr<FIPPacket>> result;
         for (const std::unique_ptr<pcpp::RawPacket>& pktPtr : inputPackets) {
             std::unique_ptr<FIPPacket> fippkt = preprocess(pktPtr, type);
@@ -137,6 +146,13 @@ class PacketProcessor {
                 if (res.second) {
                 result.push_back(std::move(fippkt));
                 } else {
+                    // This case occurs if two packets are the same (have the same hash value)
+                    // which results in the packet not being used if remove_duplicates is set
+                    if (!removeDuplicates) {
+                        result.push_back(std::move(fippkt));
+                    } else {
+                        std::cout << "[-] Warning: Duplicate packet with hash value " << fippkt->getHash() << " removed" << std::endl;
+                    }
                 }
             } else {
                 result.push_back(std::move(fippkt));
@@ -161,11 +177,9 @@ class PacketProcessor {
      */
     std::unique_ptr<FIPPacket> preprocess(const std::unique_ptr<pcpp::RawPacket>& packet, PacketProcessorType type) {
         // Wrap in UnknownPacket to inspect layer map
-        FIPPacket* packetForMaps = new FIPPacket(*packet);
-        std::unique_ptr<FIPPacket> fippacket;
-        std::unordered_map<std::string, std::string> address_mapping = packetForMaps->getAdressMapping();
-        std::unordered_map<std::string, bool> layer_map = packetForMaps->getLayerMap();
-        delete packetForMaps;
+        std::unique_ptr<FIPPacket> fippacket = std::make_unique<UnknownPacket>(*packet);
+        std::unordered_map<std::string, std::string> address_mapping = fippacket->getAdressMapping();
+        std::unordered_map<std::string, bool> layer_map = fippacket->getLayerMap();
         // HTTP handling
         if (layer_map.count("HTTP")) {
             fippacket = std::make_unique<HTTPPacket>(*packet, address_mapping, layer_map);
@@ -185,11 +199,11 @@ class PacketProcessor {
             fippacket = std::make_unique<TransportPacket>(*packet, address_mapping, layer_map);
         }
         // Network layer (IPv4/IPv6)
-        else if (layer_map.count("IP") || layer_map.count("IPv6")) {
+        else if (layer_map.count("IPv4") || layer_map.count("IPv6")) {
             fippacket = std::make_unique<IPPacket>(*packet, address_mapping, layer_map);
         }
         // Data link layer (Ethernet)
-        else if (layer_map.count("Ether")) {
+        else if (layer_map.count("Ethernet")) {
             fippacket = std::make_unique<EtherPacket>(*packet, address_mapping, layer_map);
         }
 

@@ -66,15 +66,9 @@ class HTTPRequestPacket : public HTTPPacket {
                 copyHeader("Cookie",          8);
                 copyHeader("TE",              9);
     
-                // Preserve any payload following the HTTP layer
-                pcpp::Layer* payload = origLayer->getNextLayer();
-    
                 // Replace the original HTTP layer with our custom one
                 temporaryPacket.removeLayer(pcpp::HTTPRequest);
                 temporaryPacket.addLayer(customReq);
-                if (payload) {
-                    temporaryPacket.addLayer(payload);
-                }
                 const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
                 int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
                 timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
@@ -184,15 +178,9 @@ class HTTPResponsePacket : public HTTPPacket {
                 copyHeader("Set-Cookie",           5);
                 copyHeader("Transfer-Encoding",    6);
     
-                // Preserve any payload following the HTTP layer
-                pcpp::Layer* payload = origLayer->getNextLayer();
-    
                 // Replace the original HTTP layer with our custom one
                 temporaryPacket.removeLayer(pcpp::HTTPResponse);
                 temporaryPacket.addLayer(customResp);
-                if (payload) {
-                    temporaryPacket.addLayer(payload);
-                }
                 const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
                 int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
                 timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();

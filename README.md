@@ -37,7 +37,7 @@ Optional:
 ```bash
 # Clone this repo
 git clone https://github.com/yourusername/heiFIPCpp.git
-cd heiFIPCpp
+cd heiFIP/heiFIP/
 
 # Create build directory
 mkdir build && cd build
