@@ -193,7 +193,7 @@ The following people contributed to heiFIP:
 
 - [Stefan Machmeier](https://github.com/stefanDeveloper): Creator
 - [Manuel Trageser](https://github.com/maxi99manuel99): Header extraction and customization.
-- [Henri Rebitzky] (https://github.com/HenriRebitzky): Coversion from python to c++
+- [Henri Rebitzky](https://github.com/HenriRebitzky): Coversion from python to c++
 
 ## License
 
