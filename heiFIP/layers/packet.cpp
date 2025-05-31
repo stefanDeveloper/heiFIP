@@ -9,7 +9,7 @@
 #include <string>
 #include <sstream>
 #include <iomanip>
-#include <openssl/md5.h>
+#include <openssl/sha.h>   // instead of md5.h
 #include <cstdlib>
 #include <ctime>
 
@@ -21,25 +21,29 @@ class FIPPacket {
         std::unordered_map<std::string, bool> layer_map;
         std::string hash;
 
-        std::string generate_md5() {
+        std::string generate_sha256() {
+            // 1) gather all layer-bytes into one buffer
             std::ostringstream raw_stream;
-
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::Layer* currentLayer = temporaryPacket.getFirstLayer();
-            while (currentLayer != nullptr) {
-                raw_stream.write((const char*)currentLayer->getData(), currentLayer->getDataLen());
-                currentLayer = currentLayer->getNextLayer();
+            pcpp::Packet tempPkt(getRawPacket().get());
+            for (pcpp::Layer* layer = tempPkt.getFirstLayer(); layer; layer = layer->getNextLayer()) {
+                raw_stream.write(reinterpret_cast<const char*>(layer->getData()),
+                                layer->getDataLen());
             }
+            std::string data = raw_stream.str();
 
-            std::string raw_data = raw_stream.str();
-            unsigned char digest[MD5_DIGEST_LENGTH];
-            MD5((unsigned char*)raw_data.c_str(), raw_data.length(), digest);
+            // 2) compute SHA-256
+            unsigned char digest[SHA256_DIGEST_LENGTH];
+            SHA256(reinterpret_cast<const unsigned char*>(data.data()),
+                data.size(),
+                digest);
 
-            std::ostringstream md5stream;
-            for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
-                md5stream << std::hex << std::setw(2) << std::setfill('0') << (int)digest[i];
-
-            return md5stream.str();
+            // 3) hex-encode
+            std::ostringstream hash_stream;
+            hash_stream << std::hex << std::setfill('0');
+            for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i) {
+                hash_stream << std::setw(2) << static_cast<int>(digest[i]);
+            }
+            return hash_stream.str();
         }
 
         void extract_layers() {
@@ -107,7 +111,7 @@ class FIPPacket {
                 layer_map = lmap;
             }
 
-            hash = generate_md5();
+            hash = generate_sha256();
         }
 
         virtual ~FIPPacket() = default;
@@ -141,7 +145,7 @@ class FIPPacket {
         void setRawPacket(std::unique_ptr<pcpp::RawPacket> newRawPacket) {
             rawPacketPointer = std::move(newRawPacket);
             extract_layers();       // Optionally re-extract protocol layers
-            hash = generate_md5();  // Optionally regenerate the hash
+            hash = generate_sha256();  // Optionally regenerate the hash
         }
 };
 

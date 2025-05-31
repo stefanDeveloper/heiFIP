@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="1280mm"
+   height="640mm"
+   viewBox="0 0 1280 640"
+   version="1.1"
+   id="svg5"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="heiFIP.svg"
+   inkscape:export-filename="/home/smachmeier/heiFIP_logo.png"
+   inkscape:export-xdpi="96"
+   inkscape:export-ydpi="96"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview7"
+     pagecolor="#141c2c"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="0"
+     inkscape:document-units="mm"
+     showgrid="false"
+     inkscape:zoom="0.28284582"
+     inkscape:cx="2466.0078"
+     inkscape:cy="1240.9588"
+     inkscape:window-width="2560"
+     inkscape:window-height="1415"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" />
+  <defs
+     id="defs2">
+    <rect
+       x="1275.9391"
+       y="716.97354"
+       width="3793.7693"
+       height="1581.0296"
+       id="rect6260" />
+  </defs>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Background"
+     style="opacity:0" />
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     style="display:inline">
+    <text
+       xml:space="preserve"
+       transform="matrix(0.26458333,0,0,0.26458333,46.110273,44.381001)"
+       id="text6258"
+       style="font-style:normal;font-weight:normal;font-size:40px;line-height:1.25;font-family:sans-serif;white-space:pre;shape-inside:url(#rect6260);fill:#000000;fill-opacity:1;stroke:none"><tspan
+         x="1275.9395"
+         y="1425.8478"
+         id="tspan46559"><tspan
+           dx="0 0 0 0 0.00012207031 -0.00018310547"
+           style="font-size:1066.67px;font-family:Mandali;-inkscape-font-specification:'Mandali, Normal';fill:#ffffff"
+           id="tspan46557">heiFIP</tspan></tspan></text>
+    <circle
+       style="fill:#00ffff;fill-opacity:0.498039;stroke-width:1.36723"
+       id="path29259"
+       cx="223.57982"
+       cy="331.89633"
+       r="140.78442" />
+    <circle
+       style="fill:#00ffff;fill-opacity:0.498039;stroke-width:1.64272"
+       id="path29261"
+       cx="127.03136"
+       cy="337.16962"
+       r="105.73282" />
+  </g>
+</svg>

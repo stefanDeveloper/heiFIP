@@ -11,7 +11,6 @@
 #include "ip.cpp"
 #include "packet.cpp"
 
-#include <openssl/md5.h>
 #include <sstream>
 #include <iomanip>
 
@@ -50,11 +49,11 @@ class TransportPacket : public IPPacket {
                 std::string hashInput = oss.str();
 
                 // Hash it using OpenSSL MD5
-                unsigned char digest[MD5_DIGEST_LENGTH];
-                MD5(reinterpret_cast<const unsigned char*>(hashInput.c_str()), hashInput.length(), digest);
+                unsigned char digest[SHA256_DIGEST_LENGTH];
+                SHA256(reinterpret_cast<const unsigned char*>(hashInput.c_str()), hashInput.length(), digest);
 
                 std::ostringstream hashStream;
-                for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
+                for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
                     hashStream << std::hex << std::setw(2) << std::setfill('0') << (int)digest[i];
                 hash = hashStream.str();
 
@@ -233,11 +232,11 @@ class TransportPacket : public IPPacket {
 
     private:
         std::string md5Hash(const std::string& input) {
-            unsigned char digest[MD5_DIGEST_LENGTH];
-            MD5(reinterpret_cast<const unsigned char*>(input.c_str()), input.length(), digest);
+            unsigned char digest[SHA256_DIGEST_LENGTH];
+            SHA256(reinterpret_cast<const unsigned char*>(input.c_str()), input.length(), digest);
 
             std::ostringstream oss;
-            for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
+            for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
                 oss << std::hex << std::setw(2) << std::setfill('0') << (int)digest[i];
             return oss.str();
         }

@@ -3,7 +3,7 @@
 // Main function to demonstrate the usage of the Runner
 int main() {
 
-    std::string input_file = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFP/heiFIPCpp/tests/pcaps/http/http-11-request-then-cruft.pcap";  // Update with actual path
+    std::string input_file = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFPGit/tests/pcaps/ncp.pcap";  // Update with actual path
     std::string output_dir = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFPGit/heiFIP/build";  // Update with actual output path
 
     std::atomic<int> pbar(0);

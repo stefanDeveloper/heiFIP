@@ -1,68 +1,64 @@
-cmake_minimum_required(VERSION 3.10)
+cmake_minimum_required(VERSION 3.14)
 project(heiFIP)
 
 set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-include_directories(/usr/local/include)
-
-#set(CMAKE_BUILD_TYPE Release)
-set(CMAKE_BUILD_TYPE Debug)
-set(CMAKE_CXX_FLAGS_DEBUG "-g")
-set(CMAKE_C_FLAGS_DEBUG "-g")
-add_compile_options(-Wno-deprecated-declarations)
-
-if (EXISTS "/opt/homebrew")
-    set(HOMEBREW_PREFIX "/opt/homebrew")  # Apple Silicon
-else()
-    set(HOMEBREW_PREFIX "/usr/local")     # Intel
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING
+      "Choose the type of build (Debug or Release)" FORCE
+  )
 endif()
 
-link_directories(${HOMEBREW_PREFIX}/lib ${OPENSSL_LIBRARIES})
-link_directories(/usr/local/lib)
-include_directories(${CMAKE_SOURCE_DIR}/assets)
-include_directories(${CMAKE_SOURCE_DIR}/plugins)
-include_directories(${CMAKE_SOURCE_DIR}/images)
-include_directories(${CMAKE_SOURCE_DIR}/layers)
+# Your own include dirs
 include_directories(
-    ${HOMEBREW_PREFIX}/include
-    ${HOMEBREW_PREFIX}/include/pcapplusplus
-    ${OPENSSL_INCLUDE_DIR}
+  ${CMAKE_SOURCE_DIR}/assets
+  ${CMAKE_SOURCE_DIR}/plugins
+  ${CMAKE_SOURCE_DIR}/images
+  ${CMAKE_SOURCE_DIR}/layers
 )
 
-set(OPENSSL_ROOT_DIR "${HOMEBREW_PREFIX}/opt/openssl")
-set(OPENSSL_INCLUDE_DIR "${OPENSSL_ROOT_DIR}/include")
-set(OPENSSL_LIBRARIES "${OPENSSL_ROOT_DIR}/lib")
-
-add_library(heiFIBPacketImage STATIC assets/heiFIBPacketImage.cpp)
-target_include_directories(heiFIBPacketImage PUBLIC ${CMAKE_SOURCE_DIR})
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+message(STATUS "CMAKE_MODULE_PATH = ${CMAKE_MODULE_PATH}")
 
 find_package(OpenSSL REQUIRED)
+message(STATUS "OpenSSL include dirs: ${OpenSSL_INCLUDE_DIRS}")
+message(STATUS "OpenSSL libraries:   ${OpenSSL_LIBRARIES}")
 
-find_package(OpenCV REQUIRED
-    COMPONENTS core imgcodecs   
-)
+find_package( OpenCV REQUIRED )
+message(STATUS "Opencv include dirs: ${OpenCV_INCLUDE_DIRS}")
+message(STATUS "Opencv libraries:   ${OpenCV_LIBRARIES}")
 
+find_package(PcapPlusPlus REQUIRED)
+message(STATUS "PcapPlusPlus include dirs: ${PcapPlusPlus_INCLUDE_DIRS}")
+message(STATUS "PcapPlusPlus libraries:   ${PcapPlusPlus_LIBRARIES}")
+
+# === Your executables ===
 add_executable(heiFIP cli.cpp)
+add_executable(main  main.cpp)
 
-target_include_directories(heiFIP PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(heiFIP
-    Pcap++
-    Packet++
-    Common++
-    pcap
-    ${OPENSSL_LIBRARIES}
-    ${OpenCV_LIBS}
+# === Link against PcapPlusPlus, OpenSSL, OpenCV, and libpcap ===
+target_include_directories(heiFIP PUBLIC
+    ${PcapPlusPlus_INCLUDE_DIRS}
+    ${OpenSSL_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
 )
 
-add_executable(main main.cpp)
+target_link_libraries(heiFIP PUBLIC
+  ${OPENSSL_CRYPTO_LIBRARY}
+  ${OPENSSL_LIBRARIES}
+  ${PcapPlusPlus_LIBRARIES}
+  ${OpenCV_LIBS}
+)
 
-target_include_directories(main PRIVATE ${OpenCV_INCLUDE_DIRS})
-target_link_libraries(main
-    Pcap++
-    Packet++
-    Common++
-    pcap
-    ${OPENSSL_LIBRARIES}
-    ${OpenCV_LIBS}
+target_include_directories(main PUBLIC
+    ${PcapPlusPlus_INCLUDE_DIRS}
+    ${OpenSSL_INCLUDE_DIRS}
+    ${OpenCV_INCLUDE_DIRS}
+)
+
+target_link_libraries(main PUBLIC
+  ${OPENSSL_CRYPTO_LIBRARY}
+  ${OPENSSL_LIBRARIES}
+  ${PcapPlusPlus_LIBRARIES}
+  ${OpenCV_LIBS}
 )

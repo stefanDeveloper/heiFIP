@@ -11,7 +11,6 @@
 #include "packet.cpp"
 #include "header.cpp"
 
-#include <openssl/md5.h>
 #include <iostream>
 #include <unordered_map>
 #include <string>
@@ -172,11 +171,11 @@ public:
 
 private:
     void computeHash(const std::string& input) {
-        unsigned char result[MD5_DIGEST_LENGTH];
-        MD5(reinterpret_cast<const unsigned char*>(input.c_str()), input.length(), result);
+        unsigned char result[SHA256_DIGEST_LENGTH];
+        SHA256(reinterpret_cast<const unsigned char*>(input.c_str()), input.length(), result);
 
         std::ostringstream oss;
-        for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
+        for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
             oss << std::hex << std::setw(2) << std::setfill('0') << (int)result[i];
 
         hash = oss.str();

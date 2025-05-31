@@ -3,7 +3,6 @@
 #include "transport.cpp" 
 #include "PcapPlusPlusVersion.h"
 #include "HttpLayer.h"
-#include <openssl/md5.h>
 #include <string>
 #include <sstream>
 #include <iomanip>
@@ -98,11 +97,11 @@ class HTTPRequestPacket : public HTTPPacket {
 
                 std::string input = path + "," + method + "," + accept;
 
-                unsigned char digest[MD5_DIGEST_LENGTH];
-                MD5((unsigned char*)input.c_str(), input.size(), digest);
+                unsigned char digest[SHA256_DIGEST_LENGTH];
+                SHA256((unsigned char*)input.c_str(), input.size(), digest);
 
                 std::ostringstream oss;
-                for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
+                for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
                     oss << std::hex << std::setw(2) << std::setfill('0') << (int)digest[i];
 
                 hash = oss.str();
@@ -219,11 +218,11 @@ class HTTPResponsePacket : public HTTPPacket {
     
             // Build input string and compute MD5
             std::string input = server + "," + statusCode + "," + connection;
-            unsigned char digest[MD5_DIGEST_LENGTH];
-            MD5(reinterpret_cast<const unsigned char*>(input.c_str()), input.size(), digest);
+            unsigned char digest[SHA256_DIGEST_LENGTH];
+            SHA256(reinterpret_cast<const unsigned char*>(input.c_str()), input.size(), digest);
     
             std::ostringstream oss;
-            for (int i = 0; i < MD5_DIGEST_LENGTH; ++i)
+            for (int i = 0; i < SHA256_DIGEST_LENGTH; ++i)
                 oss << std::hex << std::setw(2) << std::setfill('0') << (int)digest[i];
     
             hash = oss.str();
