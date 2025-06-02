@@ -103,22 +103,26 @@ mkdir build && cd build
 
 cmake ..
 
-# While we do use scripts to automatically detect the necessary dependencies if those scripts fail
-# you can specify the paths to the include directories of the header files aswell as the paths to
-# libaries manually like so
+# We highly recommend that locating necessary dependencies is done manually since espically 
+# Pcap Plus Plus is often not installed in standard locations. While we do use scripts to automatically detect 
+# the necessary dependencies if those scripts fail you can specify the paths to the include directories of the header 
+# files aswell as the paths to libaries manually like so
 
 
 cmake .. \
-  -DOpenSSL_INCLUDE_DIR=/path/to/openssl/include \
-  -DOpenSSL_LIBRARIES=/path/to/openssl/lib/libssl.a;/path/to/openssl/lib/libcrypto.a \
-  -DPcapPlusPlus_INCLUDE_DIRS=/path/to/pcapplusplus/include \
-  -DPcapPlusPlus_LIBRARIES="/path/to/libCommon++.a;/path/to/libPacket++.a;/path/to/libPcap++.a" \
-  -DOpenCV_INCLUDE_DIRS=/path/to/opencv/include \
-  -DOpenCV_LIBS="/path/to/libopencv_core.dylib;/path/to/libopencv_imgcodecs.dylib" \
-  -DCMAKE_BUILD_TYPE=Release
+  -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_MANUAL_PCAPPLUSPLUS=ON \
+  -DPcapPlusPlus_INCLUDE_DIRS="/opt/homebrew/Cellar/pcapplusplus/25.05/include" \
+  -DPcapPlusPlus_LIBRARIES="/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libCommon++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPacket++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPcap++.a" \
+  -DUSE_MANUAL_OPENSSL=ON \
+  -DOPENSSL_INCLUDE_DIR="/opt/homebrew/opt/openssl@3/include" \
+  -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.dylib"
 
 # Compile
 make -j$(nproc)
+
+# or
+cmake --build build
 
 # The executable 'heiFIPCpp' will be produced in build/
 ```
