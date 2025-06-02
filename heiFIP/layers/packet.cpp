@@ -70,8 +70,6 @@ class FIPPacket {
                 return "IPv6";
             case pcpp::TCP:
                 return "TCP";
-            case pcpp::HTTP:
-                return "HTTP";
             case pcpp::HTTPRequest:
                 return "HTTPRequest";
             case pcpp::HTTPResponse:
