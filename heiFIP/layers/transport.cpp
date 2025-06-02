@@ -19,15 +19,14 @@ class TransportPacket : public IPPacket {
     public:
     std::string hash;
 
-    TransportPacket(const pcpp::RawPacket& packet,
+    TransportPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
         std::unordered_map<std::string, std::string> addressMapping = {},
         std::unordered_map<std::string, bool> layerMap = {})
-        : IPPacket(packet, addressMapping, layerMap)
+        : IPPacket(std::move(rawPacketPointer), addressMapping, layerMap)
         {
         if (layerMap["TCP"]) {
             // Get the TCP layer
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::TcpLayer* tcpLayer = temporaryPacket.getLayerOfType<pcpp::TcpLayer>();
+            pcpp::TcpLayer* tcpLayer = Packet.getLayerOfType<pcpp::TcpLayer>();
             if (tcpLayer != nullptr) {
                 // Compute hash using TCP flags and options count
                 pcpp::tcphdr* tcpHeader = tcpLayer->getTcpHeader();
@@ -59,52 +58,51 @@ class TransportPacket : public IPPacket {
 
                 // Remove the payload if certain layers are present
                 if (layerMap["TLS"] || (layerMap["Raw"] && !layerMap["HTTP"])) {
+                    pcpp::TcpLayer* tcpLayer = Packet.getLayerOfType<pcpp::TcpLayer>();
+                    if (!tcpLayer) return;  // no TCP → nothing to strip
 
-                        pcpp::TcpLayer newTcpLayer = pcpp::TcpLayer(*(temporaryPacket).getLayerOfType<pcpp::TcpLayer>());
-                        // Reconstruct the packet with the new TCP header
-                        temporaryPacket.removeLayer(pcpp::TCP);
-                        temporaryPacket.addLayer(&newTcpLayer);
-                        temporaryPacket.computeCalculateFields();
+                    // 2) Walk ahead from tcpLayer->getNextLayer(), 
+                    //    detaching & deleting until the end of the chain.
+                    pcpp::Layer* next = tcpLayer->getNextLayer();
+                    while (next) {
+                        pcpp::Layer* toRemove = next;
+                        next = next->getNextLayer();   // advance first
 
-                        // 3. Deep copy the modified raw data
-                        const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-                        int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-                        timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-                        pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
+                        // Detach + delete the layer
+                        Packet.detachLayer(toRemove);
+                        delete toRemove;
+                    }
 
-                        uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-                        std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-                        // 4. Replace the RawPacket in FIPPacket
-                        setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+                    // 3) Now that all downstream layers are gone, 
+                    //    we should recompute lengths/checksums on the remaining headers:
+                    Packet.computeCalculateFields();
                 }
             }
         } else if (layerMap["UDP"]) {
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::UdpLayer* udpLayer = temporaryPacket.getLayerOfType<pcpp::UdpLayer>();
+            pcpp::UdpLayer* udpLayer = Packet.getLayerOfType<pcpp::UdpLayer>();
             if (udpLayer != nullptr) {
                 std::string layerName = "UDP";
                 hash = md5Hash(layerName);
 
                 if (layerMap["TLS"] || (layerMap["Raw"] && !layerMap["HTTP"])) {
-                    pcpp::UdpLayer newTcpLayer = pcpp::UdpLayer(*temporaryPacket.getLayerOfType<pcpp::UdpLayer>());
-                    // Reconstruct the packet with the new TCP header
+                    pcpp::UdpLayer* udpLayer = Packet.getLayerOfType<pcpp::UdpLayer>();
+                    if (!udpLayer) return;  // no TCP → nothing to strip
 
-                    temporaryPacket.removeLayer(pcpp::UDP);
-                    temporaryPacket.addLayer(&newTcpLayer);
-                    temporaryPacket.computeCalculateFields();
+                    // 2) Walk ahead from tcpLayer->getNextLayer(), 
+                    //    detaching & deleting until the end of the chain.
+                    pcpp::Layer* next = udpLayer->getNextLayer();
+                    while (next) {
+                        pcpp::Layer* toRemove = next;
+                        next = next->getNextLayer();   // advance first
 
-                    // 3. Deep copy the modified raw data
-                    const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-                    int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-                    timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-                    pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
+                        // Detach + delete the layer
+                        Packet.detachLayer(toRemove);
+                        delete toRemove;
+                    }
 
-                    uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-                    std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-                    // 4. Replace the RawPacket in FIPPacket
-                    setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+                    // 3) Now that all downstream layers are gone, 
+                    //    we should recompute lengths/checksums on the remaining headers:
+                    Packet.computeCalculateFields();
                 }
             }
         }
@@ -138,76 +136,54 @@ class TransportPacket : public IPPacket {
         // Process the TCP layer if it exists
         if (layer_map["TCP"]) {
             // 1) Find the TCP layer you want to replace
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::TcpLayer* oldTcp = temporaryPacket.getLayerOfType<pcpp::TcpLayer>();
+            pcpp::TcpLayer* oldTcp = Packet.getLayerOfType<pcpp::TcpLayer>();
             if (!oldTcp) { 
                 return;  
             }
 
             // 2) Create your replacement CustomTCPLayer* customTcp = header_preprocessing_tcp(oldTcp);
-            CustomTCPLayer* customLayer = header_preprocessing_tcp(oldTcp);
+            std::unique_ptr<CustomTCPLayer> customLayer = header_preprocessing_tcp(oldTcp);
 
             // 3) Insert your custom TCP layer right after whatever came before the old one
             pcpp::Layer* prev = oldTcp->getPrevLayer();  
-            temporaryPacket.insertLayer(prev, customLayer);
+            Packet.insertLayer(prev, customLayer.release());
 
             // 4) Now safely remove the old TCP layer object
-            temporaryPacket.detachLayer(oldTcp);
+            Packet.detachLayer(oldTcp);
             delete oldTcp;
 
             // 5) If your new layer changed any length/checksum fields upstream,
             //    recompute them on the packet
-            temporaryPacket.computeCalculateFields();                    
-            const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-            int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-            timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-            pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-            uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-            std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-            // 6) Replace the RawPacket in FIPPacket
-            setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+            Packet.computeCalculateFields();
         }
     
         // Process the UDP layer if it exists
         if (layer_map["UDP"]) {
             // 1) Find the TCP layer you want to replace
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::UdpLayer* oldUdp = temporaryPacket.getLayerOfType<pcpp::UdpLayer>();
+            pcpp::UdpLayer* oldUdp = Packet.getLayerOfType<pcpp::UdpLayer>();
             if (!oldUdp) return;  
 
             // 2) Create your replacement CustomTCPLayer* customTcp = header_preprocessing_tcp(oldTcp);
-            CustomUDPLayer* customLayer = header_preprocessing_udp(oldUdp);
+            std::unique_ptr<CustomUDPLayer> customLayer = header_preprocessing_udp(oldUdp);
 
             // 3) Insert your custom TCP layer right after whatever came before the old one
             pcpp::Layer* prev = oldUdp->getPrevLayer();  
-            temporaryPacket.insertLayer(prev, customLayer);
+            Packet.insertLayer(prev, customLayer.release());
 
             // 4) Now safely remove the old TCP layer object
-            temporaryPacket.detachLayer(oldUdp);
+            Packet.detachLayer(oldUdp);
             delete oldUdp;
 
             // 5) If your new layer changed any length/checksum fields upstream,
             //    recompute them on the packet
-            temporaryPacket.computeCalculateFields();
-            const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-            int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-            timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-            pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-            uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-            std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-            // 6) Replace the RawPacket in FIPPacket
-            setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+            Packet.computeCalculateFields();
         }
     
         // Call the base class's header_preprocessing method
         IPPacket::header_preprocessing();  // Assuming this is your parent class
     }
     
-    CustomTCPLayer* header_preprocessing_tcp(pcpp::TcpLayer* tcpLayer) {
+    std::unique_ptr<CustomTCPLayer> header_preprocessing_tcp(pcpp::TcpLayer* tcpLayer) {
         auto hdr = tcpLayer->getTcpHeader();
         // Manually extract TCP flags from individual bit fields
         uint16_t flags = 0;
@@ -223,11 +199,11 @@ class TransportPacket : public IPPacket {
         size_t optLen = tcpLayer->getHeaderLen() - sizeof(*hdr);
         const uint8_t* optPtr = reinterpret_cast<const uint8_t*>(hdr) + sizeof(*hdr);
         std::vector<uint8_t> options(optPtr, optPtr + optLen);
-        return new CustomTCPLayer(flags, options);
+        return std::make_unique<CustomTCPLayer>(flags, options);
     }
 
-    CustomUDPLayer* header_preprocessing_udp(pcpp::UdpLayer* udpLayer) {
-        return new CustomUDPLayer();
+    std::unique_ptr<CustomUDPLayer> header_preprocessing_udp(pcpp::UdpLayer* udpLayer) {
+        return std::make_unique<CustomUDPLayer>();
     }
 
     private:

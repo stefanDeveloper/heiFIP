@@ -15,10 +15,10 @@ public:
      * Constructor: initializes base TransportPacket with given pcap Packet,
      * address mapping, and layer map.
      */
-    DNSPacket(const pcpp::RawPacket& packet,
+    DNSPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
         std::unordered_map<std::string, std::string> addressMapping = {},
         std::unordered_map<std::string, bool> layerMap = {})
-        : TransportPacket(packet, addressMapping, layerMap)
+        : TransportPacket(std::move(rawPacketPointer), addressMapping, layerMap)
     {
         // Base constructor handles transport-layer setup.
     }
@@ -30,8 +30,7 @@ public:
     void header_preprocessing() override {
 
          // 1) Find the DNS layer first for DNS preprocessing
-        pcpp::Packet temporaryPacketForMessageProcessing = pcpp::Packet(getRawPacket().get());
-        pcpp::DnsLayer* oldDNSForMessageProcessing = temporaryPacketForMessageProcessing.getLayerOfType<pcpp::DnsLayer>();
+        pcpp::DnsLayer* oldDNSForMessageProcessing = Packet.getLayerOfType<pcpp::DnsLayer>();
         if (!oldDNSForMessageProcessing) {
             return;
         }
@@ -54,12 +53,11 @@ public:
         }
 
         // 2) Create a second temporary packet now on the manipulated rawPacket where the new CustomDNS layer is swapped in
-        pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-        pcpp::DnsLayer* oldDNS = temporaryPacket.getLayerOfType<pcpp::DnsLayer>();
+        pcpp::DnsLayer* oldDNS = Packet.getLayerOfType<pcpp::DnsLayer>();
         pcpp::dnshdr* dnsHeader =  oldDNS->getDnsHeader();
 
         // Build new CustomDNS header
-        CustomDNS* customDns = new CustomDNS();
+        std::unique_ptr<CustomDNS> customDns = std::make_unique<CustomDNS>();
         customDns->qr      = dnsHeader->queryOrResponse;
         customDns->opcode  = static_cast<uint8_t>(dnsHeader->opcode);
         customDns->aa      = dnsHeader->authoritativeAnswer;
@@ -77,25 +75,15 @@ public:
 
         // 3) Insert your custom TCP layer right after whatever came before the old one
         pcpp::Layer* prev = oldDNS->getPrevLayer();
-        temporaryPacket.insertLayer(prev, customDns);
+        Packet.insertLayer(prev, customDns.release());
 
         // 4) Now safely remove the old TCP layer object
-        temporaryPacket.detachLayer(oldDNS);
+        Packet.detachLayer(oldDNS);
         delete oldDNS;
 
         // 5) If your new layer changed any length/checksum fields upstream,
         //    recompute them on the packet
-        temporaryPacket.computeCalculateFields();                    
-        const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-        int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-        timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-        pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-        uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-        std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-        // 6) Replace the RawPacket in FIPPacket
-        setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+        Packet.computeCalculateFields();                    
     }
     private:
 
@@ -104,20 +92,10 @@ public:
             // Questions: use first and next query functions
             pcpp::DnsQuery* q = origDns->getFirstQuery();
             while (q) {
-                CustomDNSQR* qrLayer = new CustomDNSQR(q->getName(), q->getDnsType());
-                pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-                temporaryPacket.addLayer(qrLayer);
+                std::unique_ptr<CustomDNSQR> qrLayer = std::make_unique<CustomDNSQR>(q->getName(), q->getDnsType());
+                Packet.addLayer(qrLayer.release());
                 q = origDns->getNextQuery(q);
-                const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-                int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-                timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-                pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-                uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-                std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-                // 4. Replace the RawPacket in FIPPacket
-                setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+                Packet.computeCalculateFields();
             }
         }
         else {
@@ -131,25 +109,16 @@ public:
                 r = origDns->getFirstAdditionalRecord();
 
             while (r) {
-                pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-                CustomDNSRR* rrLayer = new CustomDNSRR(r->getName(), r->getDnsType(), r->getTTL());
-                temporaryPacket.addLayer(rrLayer);
-                const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-                int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-                timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-                pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-                uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-                std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-                // 4. Replace the RawPacket in FIPPacket
-                setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
-                if (messageType == "an")
+                std::unique_ptr<CustomDNSRR> rrLayer = std::make_unique<CustomDNSRR>(r->getName(), r->getDnsType(), r->getTTL());
+                Packet.addLayer(rrLayer.release());
+                if (messageType == "an") {
                     r = origDns->getNextAnswer(r);
-                else if (messageType == "ns")
+                } else if (messageType == "ns") {
                     r = origDns->getNextAuthority(r);
-                else // "ar"
+                } else { // "ar"
                     r = origDns->getNextAdditionalRecord(r);
+                }
+                Packet.computeCalculateFields();
             }
         }
     }

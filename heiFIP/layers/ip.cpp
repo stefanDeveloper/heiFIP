@@ -19,15 +19,14 @@
 
 class IPPacket : public EtherPacket {
 public:
-    IPPacket(const pcpp::RawPacket& packet,
+    IPPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
              std::unordered_map<std::string, std::string> addressMapping = {},
              std::unordered_map<std::string, bool> layerMap = {})
-        : EtherPacket(packet, addressMapping, layerMap)
+        : EtherPacket(std::move(rawPacketPointer), addressMapping, layerMap)
     {
         if (layerMap.count("IPv4")) {
             filterIPv4();
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            auto ipLayer = temporaryPacket.getLayerOfType<pcpp::IPv4Layer>();
+            auto ipLayer = Packet.getLayerOfType<pcpp::IPv4Layer>();
             std::string hashInput = std::to_string(ipLayer->getIPv4Header()->ipVersion) + "," +
                                     std::to_string(ipLayer->getIPv4Header()->fragmentOffset) + "," +
                                     std::to_string(ipLayer->getIPv4Header()->protocol);
@@ -41,8 +40,7 @@ public:
         }
         else if (layerMap.count("IPv6")) {
             filterIPv6();
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            auto ip6Layer = temporaryPacket.getLayerOfType<pcpp::IPv6Layer>();
+            auto ip6Layer = Packet.getLayerOfType<pcpp::IPv6Layer>();
             std::string hashInput = std::to_string(ip6Layer->getIPv6Header()->ipVersion) + "," +
                                     std::to_string(ip6Layer->getIPv6Header()->trafficClass) + "," +
                                     std::to_string(ip6Layer->getIPv6Header()->hopLimit);
@@ -59,113 +57,67 @@ public:
     void header_preprocessing() override {
         if (layer_map.count("IPv4")) {
             // 1) Find the TCP layer you want to replace
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::IPv4Layer* oldIp = temporaryPacket.getLayerOfType<pcpp::IPv4Layer>();
+            pcpp::IPv4Layer* oldIp = Packet.getLayerOfType<pcpp::IPv4Layer>();
             if (!oldIp) return;  
 
             pcpp::Layer* prev = oldIp->getPrevLayer();
             
             // 4) Now safely remove the old TCP layer object
-            temporaryPacket.detachLayer(oldIp);
+            Packet.detachLayer(oldIp);
 
             // 2) Create your replacement CustomTCPLayer* customTcp = header_preprocessing_tcp(oldTcp);
-            CustomIPLayer* customLayer = header_preprocessing_ipv4(oldIp);
+            std::unique_ptr<CustomIPLayer> customLayer = header_preprocessing_ipv4(oldIp);
             delete oldIp;
 
             // 3) Insert your custom TCP layer right after whatever came before the old one
-            temporaryPacket.insertLayer(prev, customLayer, true);
+            Packet.insertLayer(prev, customLayer.release(), true);
 
             // 5) If your new layer changed any length/checksum fields upstream,
             //    recompute them on the packet
-            temporaryPacket.computeCalculateFields();
-            const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-            int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-            timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-            pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-            uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-            std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-            // 6) Replace the RawPacket in FIPPacket
-            setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+            Packet.computeCalculateFields();
         }
     
         if (layer_map.count("IPv6")) {
             // 1) Find the TCP layer you want to replace
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::IPv6Layer* oldIp = temporaryPacket.getLayerOfType<pcpp::IPv6Layer>();
+            pcpp::IPv6Layer* oldIp = Packet.getLayerOfType<pcpp::IPv6Layer>();
             if (!oldIp) return;  
 
             // 2) Create your replacement CustomTCPLayer* customTcp = header_preprocessing_tcp(oldTcp);
-            CustomIPv6Layer* customLayer = header_preprocessing_ipv6(oldIp);
+            std::unique_ptr<CustomIPv6Layer> customLayer = header_preprocessing_ipv6(oldIp);
 
             // 3) Insert your custom TCP layer right after whatever came before the old one
             pcpp::Layer* prev = oldIp->getPrevLayer();  
-            temporaryPacket.insertLayer(prev, customLayer);
+            Packet.insertLayer(prev, customLayer.release());
 
             // 4) Now safely remove the old TCP layer object
-            temporaryPacket.detachLayer(oldIp);
+            Packet.detachLayer(oldIp);
             delete oldIp;
 
             // 5) If your new layer changed any length/checksum fields upstream,
             //    recompute them on the packet
-            temporaryPacket.computeCalculateFields();
-            const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-            int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-            timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-            pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-            uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-            std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-            // 6) Replace the RawPacket in FIPPacket
-            setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+            Packet.computeCalculateFields();
         }
     
         // Call base class preprocessing
         EtherPacket::header_preprocessing();
     }
 
-    // Functio to find the layer immediately preceding the IPv4 layer
-    pcpp::Layer* getLayerBeforeIPv4(const pcpp::Packet& packet) {
-        pcpp::Layer* previous = nullptr;
-        for (pcpp::Layer* layer = packet.getFirstLayer(); layer != nullptr; layer = layer->getNextLayer()) {
-            std::cout << "Layer: " << layer->toString();
-            if (layer->getProtocol() == pcpp::IPv4) {
-                return previous;
-            }
-            previous = layer;
-        }
-        return nullptr;
-    };
-
-    CustomIPLayer* header_preprocessing_ipv4(pcpp::IPv4Layer* ipLayer) {
+    std::unique_ptr<CustomIPLayer> header_preprocessing_ipv4(pcpp::IPv4Layer* ipLayer) {
         pcpp::iphdr* hdr = ipLayer->getIPv4Header();
         uint8_t version = hdr->ipVersion;
         uint16_t fragOffset = ntohs(hdr->fragmentOffset);
         uint8_t flags = static_cast<uint8_t>((fragOffset >> 13) & 0x07);
-        return new CustomIPLayer(version, flags, hdr->typeOfService, hdr->timeToLive, hdr->protocol);
+        return std::make_unique<CustomIPLayer>(version, flags, hdr->typeOfService, hdr->timeToLive, hdr->protocol);
     }
 
-    // Function to find the layer immediately preceding the IPv6 layer
-    pcpp::Layer* getLayerBeforeIPv6(const pcpp::Packet& packet) {
-        pcpp::Layer* previous = nullptr;
-        for (pcpp::Layer* layer = packet.getFirstLayer(); layer != nullptr; layer = layer->getNextLayer()) {
-            if (layer->getProtocol() == pcpp::IPv6) {
-                return previous;
-            }
-            previous = layer;
-        }
-        return nullptr;
-    };
+    std::unique_ptr<CustomIPv6Layer> header_preprocessing_ipv6(pcpp::IPv6Layer* ipv6Layer) {
+        
+        uint8_t ipVersion = ipv6Layer->getIPv6Header()->ipVersion;
+        uint8_t trafficClass = ipv6Layer->getIPv6Header()->trafficClass;
+        uint8_t nextHeader = ipv6Layer->getIPv6Header()->nextHeader;
+        uint8_t hopLimit = ipv6Layer->getIPv6Header()->hopLimit;
 
-    CustomIPv6Layer* header_preprocessing_ipv6(pcpp::IPv6Layer* ipv6Layer) {
-        return new CustomIPv6Layer(
-            ipv6Layer->getIPv6Header()->ipVersion,
-            ipv6Layer->getIPv6Header()->trafficClass,
-            ipv6Layer->getIPv6Header()->nextHeader,
-            ipv6Layer->getIPv6Header()->hopLimit
-        );
+        return std::make_unique<CustomIPv6Layer>(ipVersion, trafficClass, nextHeader, hopLimit);
     }
 
 
@@ -182,8 +134,7 @@ private:
     }
 
     void filterIPv4() {
-        pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-        auto ipLayer = temporaryPacket.getLayerOfType<pcpp::IPv4Layer>();
+        auto ipLayer = Packet.getLayerOfType<pcpp::IPv4Layer>();
         std::string src = ipLayer->getSrcIPAddress().toString();
         std::string dst = ipLayer->getDstIPAddress().toString();
 
@@ -195,8 +146,7 @@ private:
     }
 
     void filterIPv6() {
-        pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-        auto ip6Layer = temporaryPacket.getLayerOfType<pcpp::IPv6Layer>();
+        auto ip6Layer = Packet.getLayerOfType<pcpp::IPv6Layer>();
         std::string src = ip6Layer->getSrcIPAddress().toString();
         std::string dst = ip6Layer->getDstIPAddress().toString();
 

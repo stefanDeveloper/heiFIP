@@ -1,11 +1,11 @@
 #pragma once
 
 #include <fstream>
-#include "heiFIBPacketImage.cpp"
+#include "heiFIPPacketImage.cpp"
 
-std::vector<std::shared_ptr<heiFIBPacketImage>> read_pcap(const std::string& filename) {
+std::vector<std::shared_ptr<heiFIPPacketImage>> read_pcap(const std::string& filename) {
     std::ifstream file(filename, std::ios::binary);
-    std::vector<std::shared_ptr<heiFIBPacketImage>> packets;
+    std::vector<std::shared_ptr<heiFIPPacketImage>> packets;
     if (!file.is_open()) {
         std::cerr << "Error: Could not open file " << filename << std::endl;
         return packets;
@@ -24,8 +24,8 @@ std::vector<std::shared_ptr<heiFIBPacketImage>> read_pcap(const std::string& fil
         file.read(reinterpret_cast<char*>(packet_data.data()), packetHeader.caplen);
 
 
-        heiFIBPacketImage packet = heiFIBPacketImage(packet_data, packetHeader.caplen );
-        packets.push_back(std::make_shared<heiFIBPacketImage>(packet));
+        heiFIPPacketImage packet = heiFIPPacketImage(packet_data, packetHeader.caplen );
+        packets.push_back(std::make_shared<heiFIPPacketImage>(packet));
     }
     file.close();
     return packets;

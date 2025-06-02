@@ -134,6 +134,7 @@ int main(int argc, char* argv[]) {
     }
 
     runner.create_image(
+        "heiFIPGeneratedImage",
         input_file,
         output_dir,
         args,

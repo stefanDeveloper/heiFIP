@@ -10,12 +10,12 @@
 #include <memory>
 #include <list>
 #include <string>
-#include "heiFIBPacketImage.cpp"
+#include "heiFIPPacketImage.cpp"
 #include "packetHelper.cpp"
 
 class FlowImage : public NetworkTrafficImage {
 public:
-    FlowImage(std::vector<heiFIBPacketImage> packets, int dim = 16, int fill = 0, bool append = false)
+    FlowImage(std::vector<heiFIPPacketImage> packets, int dim = 16, int fill = 0, bool append = false)
         : NetworkTrafficImage(fill, dim), packets(packets), append(append) {
         auto result = getMatrix(dim, append, fill, packets);
         matrix = result.first;
@@ -31,15 +31,15 @@ public:
     }
 
 private:
-    std::vector<heiFIBPacketImage> packets;
+    std::vector<heiFIPPacketImage> packets;
     bool append;
     std::vector<std::vector<uint8_t>> matrix;
     std::vector<std::vector<uint8_t>> binaries;
 
-    std::pair<std::vector<std::vector<uint8_t>>, std::vector<std::vector<uint8_t>>> getMatrix(int dim, bool append, int fill, const std::vector<heiFIBPacketImage>& packets) {
+    std::pair<std::vector<std::vector<uint8_t>>, std::vector<std::vector<uint8_t>>> getMatrix(int dim, bool append, int fill, const std::vector<heiFIPPacketImage>& packets) {
         std::vector<std::vector<uint8_t>> binaries;
 
-        for (heiFIBPacketImage packet : packets) {
+        for (heiFIPPacketImage packet : packets) {
             std::vector<uint8_t> hexData = packet.getHexData();
             binaries.push_back(hexData);
         }

@@ -11,10 +11,10 @@ class SSHPacketProcessor : public TransportPacket {
         /**
          * Constructor: initialize with an existing pcap Packet, address mapping, and layer map.
          */
-        SSHPacketProcessor(const pcpp::RawPacket& packet,
+        SSHPacketProcessor(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
             std::unordered_map<std::string, std::string> addressMapping = {},
             std::unordered_map<std::string, bool> layerMap = {})
-            : TransportPacket(packet, addressMapping, layerMap) {}
+            : TransportPacket(std::move(rawPacketPointer), addressMapping, layerMap) {}
     
         /**
          * Override header preprocessing to allow SSH-specific logic.

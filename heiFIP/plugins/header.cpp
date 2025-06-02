@@ -316,6 +316,7 @@ public:
         m_Protocol = pcpp::UnknownProtocol;
         m_DataLen = 0;
         m_Data = nullptr;
+        computeCalculateFields();
     }
 
     void addField(const std::string& fieldName, const std::string& fieldValue)
@@ -339,7 +340,6 @@ public:
         }
         std::string serialized = stream.str();
 
-        delete[] m_Data;
         m_DataLen = serialized.size();
         m_Data = new uint8_t[m_DataLen];
         std::memcpy(m_Data, serialized.data(), m_DataLen);
@@ -368,6 +368,7 @@ class CustomHTTPRequest : public CustomHTTP {
             addField("Accept_Encoding", "");
             addField("Cookie", "");
             addField("TE", "");
+            computeCalculateFields();
         }
 
         virtual std::string toString() const override
@@ -392,6 +393,7 @@ class CustomHTTPResponse : public CustomHTTP {
             addField("Server", "");
             addField("Set_Cookie", "");
             addField("Transfer_Encoding", "");
+            computeCalculateFields();
         }
 
         virtual std::string toString() const override
@@ -435,7 +437,6 @@ class CustomDNSQR : public pcpp::Layer {
                 nameLen += lbl.size() + 1;
             m_DataLen = nameLen + 4;
     
-            delete[] m_Data;
             m_Data = new uint8_t[m_DataLen];
     
             // Fill QNAME
@@ -503,7 +504,6 @@ class CustomDNSRR : public pcpp::Layer {
             // Fixed 10 bytes: Type(2) + Class(2) + TTL(4) + RDLENGTH(2)
             m_DataLen = nameLen + 10;
     
-            delete[] m_Data;
             m_Data = new uint8_t[m_DataLen];
     
             size_t offset = 0;

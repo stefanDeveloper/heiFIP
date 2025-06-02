@@ -20,7 +20,6 @@ find_library(OPENSSL_CRYPTO_LIBRARY
     /opt/homebrew/lib
     /usr/local/lib
     /usr/lib
-  NO_DEFAULT_PATH
 )
 find_library(OPENSSL_SSL_LIBRARY
   NAMES ssl
@@ -30,7 +29,6 @@ find_library(OPENSSL_SSL_LIBRARY
     /opt/homebrew/lib
     /usr/local/lib
     /usr/lib
-  NO_DEFAULT_PATH
 )
 
 # 3) Standard boilerplate

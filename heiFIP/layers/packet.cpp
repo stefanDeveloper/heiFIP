@@ -15,8 +15,11 @@
 
 // Base class FIPPacket
 class FIPPacket {
+    private:
+        std::unique_ptr<pcpp::RawPacket> rawPtr;
+
     protected:
-        std::unique_ptr<pcpp::RawPacket> rawPacketPointer;
+        pcpp::Packet Packet;
         std::unordered_map<std::string, std::string> address_mapping;
         std::unordered_map<std::string, bool> layer_map;
         std::string hash;
@@ -24,8 +27,7 @@ class FIPPacket {
         std::string generate_sha256() {
             // 1) gather all layer-bytes into one buffer
             std::ostringstream raw_stream;
-            pcpp::Packet tempPkt(getRawPacket().get());
-            for (pcpp::Layer* layer = tempPkt.getFirstLayer(); layer; layer = layer->getNextLayer()) {
+            for (pcpp::Layer* layer = Packet.getFirstLayer(); layer; layer = layer->getNextLayer()) {
                 raw_stream.write(reinterpret_cast<const char*>(layer->getData()),
                                 layer->getDataLen());
             }
@@ -48,8 +50,7 @@ class FIPPacket {
 
         void extract_layers() {
             layer_map.clear();
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::Layer* layer = temporaryPacket.getFirstLayer();
+            pcpp::Layer* layer = Packet.getFirstLayer();
             while (layer != nullptr) {
                 std::string layerName = getProtocolTypeAsString(layer->getProtocol());
                 layer_map.insert({layerName, true});
@@ -84,26 +85,11 @@ class FIPPacket {
 
     public:
          // Constructor
-        FIPPacket(const pcpp::RawPacket& pkt, const std::unordered_map<std::string, std::string>& addr_map = {},
-            const std::unordered_map<std::string, bool>& lmap = {}) : address_mapping(addr_map) {
-            
-            const uint8_t* rawData = pkt.getRawData();
-            int len = pkt.getRawDataLen();
-
-            // Deep-copy the raw data buffer
-            uint8_t* dataCopy = new uint8_t[len];
-            std::memcpy(dataCopy, rawData, len);
-            timespec timeStamp = pkt.getPacketTimeStamp();
-            pcpp::LinkLayerType linkerLayerType = pkt.getLinkLayerType() ;
+        FIPPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer, const std::unordered_map<std::string, std::string>& addr_map = {},
+            const std::unordered_map<std::string, bool>& lmap = {}) : address_mapping(addr_map), rawPtr(std::move(rawPacketPointer)) {
 
             // Create a new RawPacket with the copied buffer
-            rawPacketPointer = std::make_unique<pcpp::RawPacket>(
-                dataCopy,
-                len,
-                timeStamp,
-                false, // indicate that RawPacket should free this buffer
-                linkerLayerType
-            );
+            Packet = pcpp::Packet(rawPtr.get());
 
             if (lmap.empty()) {
                 extract_layers();
@@ -129,23 +115,14 @@ class FIPPacket {
 
         // Method to retrieve the layer map
         const std::unordered_map<std::string, std::string>& getAdressMapping() const { return address_mapping; }
-    
-        /// Returns a mutable reference to the parsed Packet.
-        /// Re-parses from rawPtr if you’ve mutated the bytes directly.
-        // In FIPPacket.h
-        std::unique_ptr<pcpp::RawPacket>& getRawPacket() noexcept {
-            return rawPacketPointer;
+
+        pcpp::RawPacket* getRawPacket() {
+            return rawPtr.get();
         }
 
-        // Const overloads; can’t mutate anything
-        const pcpp::RawPacket& getRawPacket() const noexcept {
-            return *rawPacketPointer;
-        }
-
-        void setRawPacket(std::unique_ptr<pcpp::RawPacket> newRawPacket) {
-            rawPacketPointer = std::move(newRawPacket);
-            extract_layers();       // Optionally re-extract protocol layers
-            hash = generate_sha256();  // Optionally regenerate the hash
+        // Const overload: returns a const pointer to the RawPacket
+        const pcpp::RawPacket* getRawPacket() const {
+            return rawPtr.get();
         }
 };
 
@@ -153,10 +130,10 @@ class FIPPacket {
 class UnknownPacket : public FIPPacket {
 public:
     // Constructor: Initializes FIPPacket with the same parameters
-    UnknownPacket(const pcpp::RawPacket& pkt,
+    UnknownPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
                   const std::unordered_map<std::string, std::string>& addr_map = {},
                   const std::unordered_map<std::string, bool>& lmap = {})
-        : FIPPacket(pkt, addr_map, lmap) {}
+        : FIPPacket(std::move(rawPacketPointer), addr_map, lmap) {}
 
     // Override header preprocessing
     void header_preprocessing() override {
@@ -179,10 +156,10 @@ std::string generate_random_mac() {
 class EtherPacket : public FIPPacket {
 public:
     // Constructor: Initializes FIPPacket and processes the Ethernet layer
-    EtherPacket(const pcpp::RawPacket& pkt,
+    EtherPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
                 const std::unordered_map<std::string, std::string>& addr_map = {},
                 const std::unordered_map<std::string, bool>& lmap = {})
-        : FIPPacket(pkt, addr_map, lmap) {
+        : FIPPacket(std::move(rawPacketPointer), addr_map, lmap) {
 
         if (layer_map.find("Ethernet") != layer_map.end()) {
             __filter();
@@ -191,8 +168,7 @@ public:
 
     // Function to filter and modify MAC addresses
     void __filter() {
-        pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-        pcpp::EthLayer* ethLayer = temporaryPacket.getLayerOfType<pcpp::EthLayer>();
+        pcpp::EthLayer* ethLayer = Packet.getLayerOfType<pcpp::EthLayer>();
         if (ethLayer == nullptr) return;
 
         std::string previous_src = ethLayer->getSourceMac().toString();

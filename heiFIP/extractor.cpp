@@ -6,7 +6,7 @@
 #include "flow_tiled_auto.cpp"
 #include "flow_tiled_fixed.cpp"
 #include "markov_chain.cpp"
-#include "heiFIBPacketImage.cpp"
+#include "heiFIPPacketImage.cpp"
 #include <filesystem>
 #include <algorithm>
 #include <opencv2/opencv.hpp>
@@ -55,9 +55,6 @@ using ImageArgsVariant = std::variant<
 >;
 
 using UInt8Matrix = std::vector<std::vector<std::vector<uint8_t>>>;
-using DoubleMatrix = std::vector<std::vector<std::vector<double>>>;
-
-using MatrixVariant = std::variant<UInt8Matrix, DoubleMatrix>;
 
 enum class ImageType {
     FlowImage,
@@ -102,7 +99,7 @@ class FIPExtractor {
         FIPExtractor()
             : processor() {}
 
-        MatrixVariant createImageFromFile(
+        UInt8Matrix createImageFromFile(
             const std::string& input_file,
             const ImageArgsVariant& args,
             PacketProcessorType preprocessing_type = PacketProcessorType::NONE,
@@ -116,7 +113,7 @@ class FIPExtractor {
             if (!std::filesystem::exists(input_file)) {
                 throw std::runtime_error("Input file does not exist");
             }
-        
+            
             std::vector<std::unique_ptr<FIPPacket>> processed_packets = processor.readPacketsFile(input_file, preprocessing_type, remove_duplicates);
             return createMatrix(
                 processed_packets,
@@ -131,8 +128,8 @@ class FIPExtractor {
             );
         }
 
-        MatrixVariant createImageFromPacket(
-            const std::vector<std::unique_ptr<pcpp::RawPacket>>& packets,
+        UInt8Matrix createImageFromPacket(
+            std::vector<std::unique_ptr<pcpp::RawPacket>>& packets,
             const ImageArgsVariant& args,
             PacketProcessorType preprocessing_type = PacketProcessorType::NONE,
             ImageType image_type = ImageType::PacketImage,
@@ -166,7 +163,7 @@ class FIPExtractor {
      */
     // Instead of a single variadic template, provide overloads for each image type
     // FlowImage: takes packets and a flow-specific parameter, e.g., time window
-    MatrixVariant createMatrix(
+    UInt8Matrix createMatrix(
         std::vector<std::unique_ptr<FIPPacket>>& packets,
         PacketProcessorType preprocessing_type,
         ImageType image_type,
@@ -185,7 +182,7 @@ class FIPExtractor {
             packets.resize(max_packets_per_flow);
         }
 
-        std::vector<heiFIBPacketImage> packets_copy;
+        std::vector<heiFIPPacketImage> packets_copy;
         for (const std::unique_ptr<FIPPacket>& packet: packets) {
             const uint8_t* packetData = packet->getRawPacket()->getRawData();
             size_t packetLen = packet->getRawPacket()->getRawDataLen();
@@ -193,7 +190,7 @@ class FIPExtractor {
             for (size_t i = 0; i < packetLen; ++i) {
                 rawData.push_back(packetData[i]); // Add each element to the vector
             }
-            packets_copy.push_back(heiFIBPacketImage(rawData));
+            packets_copy.push_back(heiFIPPacketImage(rawData));
         }
 
         switch (image_type) {
@@ -244,7 +241,7 @@ class FIPExtractor {
             case ImageType::PacketImage: {
 
                 auto actualArgs = std::get<PacketImageArgs>(args);
-                std::vector<std::vector<std::vector<uint8_t>>> images;
+                UInt8Matrix images;
 
                 for (const std::unique_ptr<FIPPacket>& pkt : packets) {
                     const uint8_t* packetData = pkt->getRawPacket()->getRawData();
@@ -255,7 +252,7 @@ class FIPExtractor {
                         rawData.push_back(packetData[i]); // Add each element to the vector
                     }
         
-                    heiFIBPacketImage image = heiFIBPacketImage(rawData, actualArgs.dim, actualArgs.fill, actualArgs.auto_dim);
+                    heiFIPPacketImage image = heiFIPPacketImage(rawData, actualArgs.dim, actualArgs.fill, actualArgs.auto_dim);
                     std::vector<std::vector<uint8_t>> matrix = image.get_matrix();
                     if (verify(matrix, min_image_dim, max_image_dim, remove_duplicates))
                         images.push_back(matrix);
@@ -269,7 +266,7 @@ class FIPExtractor {
                     return {};
                 }
 
-                DoubleMatrix images;
+                UInt8Matrix images;
                 auto actualArgs = std::get<MarkovTransitionMatrixFlowArgs>(args);
                 MarkovTransitionMatrixFlow image(packets_copy, actualArgs.cols);
 
@@ -282,7 +279,7 @@ class FIPExtractor {
             case ImageType::MarkovTransitionMatrixPacket: {
 
                 auto actualArgs = std::get<MarkovTransitionMatrixPacketArgs>(args);
-                std::vector<std::vector<std::vector<double>>>images;
+                UInt8Matrix images;
                 const uint8_t* packetData;
                 std::vector<uint8_t> rawData;
                 int packetLen;
@@ -293,9 +290,9 @@ class FIPExtractor {
                     for (size_t i = 0; i < packetLen; ++i) {
                         rawData.push_back(packetData[i]); // Add each element to the vector
                     }
-                    heiFIBPacketImage rawImage = heiFIBPacketImage(rawData);
+                    heiFIPPacketImage rawImage = heiFIPPacketImage(rawData);
                     MarkovTransitionMatrixPacket image = MarkovTransitionMatrixPacket(rawImage);
-                    std::vector<std::vector<double>> matrix = image.get_matrix();
+                    std::vector<std::vector<uint8_t>> matrix = image.get_matrix();
                     if (verify(matrix, min_image_dim, max_image_dim, remove_duplicates))
                         images.push_back(matrix);
                 }
@@ -309,37 +306,30 @@ class FIPExtractor {
         return {}; // Empty
     }
 
-    void save_image(const MatrixVariant& img_variant, const std::string& output_path_base) {
-        std::visit([&](const auto& img) {
-            if (img.empty() || img[0].empty() || img[0][0].empty()) {
-                std::cerr << "Empty image, cannot save." << std::endl;
-                return;
+    void save_image(const UInt8Matrix& img, const std::string& output_path_base) {
+        if (img.empty() || img[0].empty() || img[0][0].empty()) {
+            std::cerr << "Empty image, cannot save." << std::endl;
+            return;
+        }
+
+        // Expecting shape: [1][height][width]
+        const auto& grayscale_image = img[0]; // Only the first 2D slice
+
+        int height = static_cast<int>(grayscale_image.size());
+        int width = static_cast<int>(grayscale_image[0].size());
+
+        cv::Mat mat(height, width, CV_8UC1);
+
+        for (size_t i = 0; i < height; ++i) {
+            uint8_t* row_ptr = mat.ptr<uint8_t>(i);
+            for (size_t j = 0; j < width; ++j) {
+                row_ptr[j] = grayscale_image[i][j];
             }
-    
-            // Expecting shape: [1][height][width]
-            const auto& grayscale_image = img[0]; // Only the first 2D slice
-    
-            int height = static_cast<int>(grayscale_image.size());
-            int width = static_cast<int>(grayscale_image[0].size());
-    
-            cv::Mat mat(height, width, CV_8UC1);
-    
-            for (size_t i = 0; i < height; ++i) {
-                uint8_t* row_ptr = mat.ptr<uint8_t>(i);
-                for (size_t j = 0; j < width; ++j) {
-                    if constexpr (std::is_same_v<std::decay_t<decltype(img)>, UInt8Matrix>) {
-                        row_ptr[j] = grayscale_image[i][j];
-                    } else {
-                        double v = grayscale_image[i][j] * 255.0;
-                        row_ptr[j] = static_cast<uint8_t>(std::clamp(v, 0.0, 255.0));
-                    }
-                }
-            }
-    
-            std::filesystem::path outp(output_path_base + "_processed.png");
-            std::filesystem::create_directories(outp.parent_path());
-            cv::imwrite(outp.string(), mat);
-        }, img_variant);
+        }
+
+        std::filesystem::path outp(output_path_base + "_processed.png");
+        std::filesystem::create_directories(outp.parent_path());
+        cv::imwrite(outp.string(), mat);
     }
 
     private:

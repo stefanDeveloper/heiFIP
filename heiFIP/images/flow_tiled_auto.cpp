@@ -9,14 +9,14 @@
 #include <cstdint>
 #include <memory>
 #include <array>
-#include "heiFIBPacketImage.cpp"
+#include "heiFIPPacketImage.cpp"
 #include "packetHelper.cpp"
 #include "NetworkTrafficImage.hpp"
 
 class FlowImageTiledAuto : public NetworkTrafficImage {
 
 public:
-    FlowImageTiledAuto(const std::vector<heiFIBPacketImage>& packets, int dim = 16, int fill = 0, bool auto_dim = false)
+    FlowImageTiledAuto(const std::vector<heiFIPPacketImage>& packets, int dim = 16, int fill = 0, bool auto_dim = false)
         : NetworkTrafficImage(fill, dim), packets(packets), auto_dim(auto_dim) {
             std::pair<std::vector<std::vector<uint8_t>>, std::vector<std::vector<uint8_t>>>  result = get_matrix_tiled(fill, dim, auto_dim, packets);
             matrix = result.first;
@@ -30,15 +30,15 @@ public:
         return binaries;
     }
 private:
-    std::vector<heiFIBPacketImage> packets;
+    std::vector<heiFIPPacketImage> packets;
     bool auto_dim;
     std::vector<std::vector<uint8_t>> matrix;
     std::vector<std::vector<uint8_t>> binaries;
 
-    std::pair<std::vector<std::vector<uint8_t>>, std::vector<std::vector<uint8_t>>> get_matrix_tiled(int fill, int dim, bool auto_dim, const std::vector<heiFIBPacketImage>& packets) {
+    std::pair<std::vector<std::vector<uint8_t>>, std::vector<std::vector<uint8_t>>> get_matrix_tiled(int fill, int dim, bool auto_dim, const std::vector<heiFIPPacketImage>& packets) {
         std::vector<std::vector<uint8_t>> binaries;
 
-        for (const heiFIBPacketImage& packet : packets) {
+        for (const heiFIPPacketImage& packet : packets) {
             std::vector<uint8_t> hexData = packet.getHexData();
             binaries.push_back(hexData);
         }

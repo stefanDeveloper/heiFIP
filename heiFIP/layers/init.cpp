@@ -134,10 +134,10 @@ class PacketProcessor {
         return result;
     }
 
-    std::vector<std::unique_ptr<FIPPacket>> readPacketsList(const std::vector<std::unique_ptr<pcpp::RawPacket>>& inputPackets,
+    std::vector<std::unique_ptr<FIPPacket>> readPacketsList(std::vector<std::unique_ptr<pcpp::RawPacket>>& inputPackets,
     PacketProcessorType type, bool removeDuplicates = false) {    
         std::vector<std::unique_ptr<FIPPacket>> result;
-        for (const std::unique_ptr<pcpp::RawPacket>& pktPtr : inputPackets) {
+        for (std::unique_ptr<pcpp::RawPacket>& pktPtr : inputPackets) {
             std::unique_ptr<FIPPacket> fippkt = preprocess(pktPtr, type);
             if (!fippkt) {continue;}
 
@@ -171,40 +171,93 @@ class PacketProcessor {
         // TLS support is integrated via PcapPlusPlus; ensure the TLS plugin library
         // is linked in your CMake configuration.
 
+    std::string getProtocolTypeAsString(pcpp::ProtocolType protocolType)
+    {
+        switch (protocolType)
+        {
+        case pcpp::Ethernet:
+            return "Ethernet";
+        case pcpp::IPv4:
+            return "IPv4";
+        case pcpp::IPv6:
+            return "IPv6";
+        case pcpp::TCP:
+            return "TCP";
+        case pcpp::HTTP:
+            return "HTTP";
+        case pcpp::HTTPRequest:
+            return "HTTPRequest";
+        case pcpp::HTTPResponse:
+            return "HTTPResponse";
+        case pcpp::DNS:
+            return "DNS";
+        default:
+            return "Unknown";
+        }
+    }
+
+    std::unordered_map<std::string, bool> inspectRawPacket(pcpp::RawPacket* origRaw) {
+        // 1) Grab length, timestamp, etc. from the original:
+        const uint8_t*   data    = origRaw->getRawData();
+        size_t           dataLen = origRaw->getRawDataLen();
+        timespec          ts      = origRaw->getPacketTimeStamp();
+        bool             owns   = true; // we want the new RawPacket to own+free its buffer
+
+        // 2) Allocate a new buffer and copy the bytes:
+        uint8_t* copyBuf = new uint8_t[dataLen];
+        std::memcpy(copyBuf, data, dataLen);
+
+        // 3) Build a temporary RawPacket that will own “copyBuf”:
+        pcpp::RawPacket deepCopyRaw(copyBuf, (int)dataLen, ts, owns);
+
+        // 4) Now parse that deep‐copied RawPacket exactly once:
+        pcpp::Packet tempPacket(&deepCopyRaw);
+
+        std::unordered_map<std::string, bool> layer_map;
+        for (pcpp::Layer* layer = tempPacket.getFirstLayer(); layer; layer = layer->getNextLayer())
+        {
+            std::string protoName = getProtocolTypeAsString(layer->getProtocol());
+            layer_map[protoName] = true;
+        }
+
+        // 5) When tempPacket (and deepCopyRaw) go out of scope, they free only the copyBuf,
+        //    leaving the original origRaw untouched.
+        return layer_map;
+    }
+
     /**
      * Pre-process a raw pcpp::Packet into a FIPPacket subclass based on layers.
      * Optionally invoke header preprocessing.
      */
-    std::unique_ptr<FIPPacket> preprocess(const std::unique_ptr<pcpp::RawPacket>& packet, PacketProcessorType type) {
-        // Wrap in UnknownPacket to inspect layer map
-        std::unique_ptr<FIPPacket> fippacket = std::make_unique<UnknownPacket>(*packet);
+    std::unique_ptr<FIPPacket> preprocess(std::unique_ptr<pcpp::RawPacket>& packet, PacketProcessorType type) {
+        std::unique_ptr<FIPPacket> fippacket = std::make_unique<UnknownPacket>(std::make_unique<pcpp::RawPacket>(*packet));
         std::unordered_map<std::string, std::string> address_mapping = fippacket->getAdressMapping();
         std::unordered_map<std::string, bool> layer_map = fippacket->getLayerMap();
         // HTTP handling
         if (layer_map.count("HTTP")) {
-            fippacket = std::make_unique<HTTPPacket>(*packet, address_mapping, layer_map);
+            fippacket = std::make_unique<HTTPPacket>(std::move(packet), address_mapping, layer_map);
         }
         else if (layer_map.count("HTTPRequest")) {
-            fippacket = std::make_unique<HTTPRequestPacket>(*packet, address_mapping, layer_map);
+            fippacket = std::make_unique<HTTPRequestPacket>(std::move(packet), address_mapping, layer_map);
         }
         else if (layer_map.count("HTTPResponse")) {
-            fippacket = std::make_unique<HTTPResponsePacket>(*packet, address_mapping, layer_map);
+            fippacket = std::make_unique<HTTPResponsePacket>(std::move(packet), address_mapping, layer_map);
         }
         // DNS handling
         else if (layer_map.count("DNS")) {
-            fippacket = std::make_unique<DNSPacket>(*packet, address_mapping, layer_map);
+            fippacket = std::make_unique<DNSPacket>(std::move(packet), address_mapping, layer_map);
         }
         // Transport layer (TCP/UDP)
         else if (layer_map.count("TCP") || layer_map.count("UDP")) {
-            fippacket = std::make_unique<TransportPacket>(*packet, address_mapping, layer_map);
+            fippacket = std::make_unique<TransportPacket>(std::move(packet), address_mapping, layer_map);
         }
         // Network layer (IPv4/IPv6)
         else if (layer_map.count("IPv4") || layer_map.count("IPv6")) {
-            fippacket = std::make_unique<IPPacket>(*packet, address_mapping, layer_map);
+            fippacket = std::make_unique<IPPacket>(std::move(packet), address_mapping, layer_map);
         }
         // Data link layer (Ethernet)
         else if (layer_map.count("Ethernet")) {
-            fippacket = std::make_unique<EtherPacket>(*packet, address_mapping, layer_map);
+            fippacket = std::make_unique<EtherPacket>(std::move(packet), address_mapping, layer_map);
         }
 
         // Header preprocessing if requested

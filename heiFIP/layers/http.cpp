@@ -10,10 +10,10 @@
 
 class HTTPPacket : public TransportPacket {
 public:
-    HTTPPacket(const pcpp::RawPacket& packet,
+    HTTPPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
         std::unordered_map<std::string, std::string> addressMapping = {},
         std::unordered_map<std::string, bool> layerMap = {})
-        : TransportPacket(packet, addressMapping, layerMap)
+        : TransportPacket(std::move(rawPacketPointer), addressMapping, layerMap)
     {
     }
 
@@ -27,10 +27,10 @@ class HTTPRequestPacket : public HTTPPacket {
     public:
         std::string hash;
 
-        HTTPRequestPacket(const pcpp::RawPacket& packet,
+        HTTPRequestPacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
                 std::unordered_map<std::string, std::string> addressMapping = {},
                 std::unordered_map<std::string, bool> layerMap = {})
-                : HTTPPacket(packet, addressMapping, layerMap)
+                : HTTPPacket(std::move(rawPacketPointer), addressMapping, layerMap)
         {
             generateHash();
             removeRawPayloadIfPresent();
@@ -38,11 +38,10 @@ class HTTPRequestPacket : public HTTPPacket {
 
         void header_preprocessing() override {
             // Extract the original HTTP request layer
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::HttpRequestLayer* origLayer = temporaryPacket.getLayerOfType<pcpp::HttpRequestLayer>();
+            pcpp::HttpRequestLayer* origLayer = Packet.getLayerOfType<pcpp::HttpRequestLayer>();
             if (origLayer) {
                 // Build a new CustomHTTPRequest and copy fields
-                CustomHTTPRequest* customReq = new CustomHTTPRequest();
+                std::unique_ptr<CustomHTTPRequest> customReq = std::make_unique<CustomHTTPRequest>();
     
                 // Copy Method and Path
                 std::string method = httpMethodEnumToString(origLayer->getFirstLine()->getMethod());
@@ -66,17 +65,9 @@ class HTTPRequestPacket : public HTTPPacket {
                 copyHeader("TE",              9);
     
                 // Replace the original HTTP layer with our custom one
-                temporaryPacket.removeLayer(pcpp::HTTPRequest);
-                temporaryPacket.addLayer(customReq);
-                const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-                int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-                timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-                pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-                uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-                std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-                setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+                Packet.removeLayer(pcpp::HTTPRequest);
+                Packet.addLayer(customReq.release());
+                Packet.computeCalculateFields();
             }
     
             // Continue base preprocessing
@@ -87,8 +78,7 @@ class HTTPRequestPacket : public HTTPPacket {
     private:
         void generateHash()
         {
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::HttpRequestLayer* httpRequestLayer = temporaryPacket.getLayerOfType<pcpp::HttpRequestLayer>();
+            pcpp::HttpRequestLayer* httpRequestLayer = Packet.getLayerOfType<pcpp::HttpRequestLayer>();
             if (httpRequestLayer != nullptr)
             {
                 std::string path = httpRequestLayer->getFirstLine()->getUri();
@@ -129,12 +119,12 @@ class HTTPRequestPacket : public HTTPPacket {
         {
             if (layer_map.find("Raw") != layer_map.end())
             {
-                pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-                pcpp::HttpRequestLayer* httpRequestLayer = temporaryPacket.getLayerOfType<pcpp::HttpRequestLayer>();
+                pcpp::HttpRequestLayer* httpRequestLayer = Packet.getLayerOfType<pcpp::HttpRequestLayer>();
                 if (httpRequestLayer != nullptr)
                 {
-                    temporaryPacket.removeAllLayersAfter(httpRequestLayer); // Simplified; depends on what you mean by "remove payload"
+                    Packet.removeAllLayersAfter(httpRequestLayer); // Simplified; depends on what you mean by "remove payload"
                 }
+                Packet.computeCalculateFields();
             }
         }
 };
@@ -143,18 +133,17 @@ class HTTPResponsePacket : public HTTPPacket {
     public:
         std::string hash;
     
-        HTTPResponsePacket(const pcpp::RawPacket& packet,
+        HTTPResponsePacket(std::unique_ptr<pcpp::RawPacket> rawPacketPointer,
                             std::unordered_map<std::string, std::string> addressMapping = {},
                             std::unordered_map<std::string, bool> layerMap = {})
-            : HTTPPacket(packet, addressMapping, layerMap) {
+            : HTTPPacket(std::move(rawPacketPointer), addressMapping, layerMap) {
             generateHash();
             removeHttpPayloadIfPresent();
         }
 
         void header_preprocessing() override {
             // Extract the original HTTP response layer
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::HttpResponseLayer* origLayer = temporaryPacket.getLayerOfType<pcpp::HttpResponseLayer>();
+            pcpp::HttpResponseLayer* origLayer = Packet.getLayerOfType<pcpp::HttpResponseLayer>();
             if (origLayer) {
                 // Instantiate CustomHTTPResponse and copy fields
                 CustomHTTPResponse* customResp = new CustomHTTPResponse();
@@ -178,18 +167,9 @@ class HTTPResponsePacket : public HTTPPacket {
                 copyHeader("Transfer-Encoding",    6);
     
                 // Replace the original HTTP layer with our custom one
-                temporaryPacket.removeLayer(pcpp::HTTPResponse);
-                temporaryPacket.addLayer(customResp);
-                const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-                int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-                timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-                pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-                uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-                std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-                // 4. Replace the RawPacket in FIPPacket
-                setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+                Packet.removeLayer(pcpp::HTTPResponse);
+                Packet.addLayer(customResp);
+                Packet.computeCalculateFields();
             }
     
             // Continue base preprocessing
@@ -199,8 +179,7 @@ class HTTPResponsePacket : public HTTPPacket {
     private:
         void generateHash() {
             // Locate the HTTP response layer
-            pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-            pcpp::HttpResponseLayer* respLayer = temporaryPacket.getLayerOfType<pcpp::HttpResponseLayer>();
+            pcpp::HttpResponseLayer* respLayer = Packet.getLayerOfType<pcpp::HttpResponseLayer>();
             if (!respLayer) return;
     
             // Extract fields for hashing
@@ -231,20 +210,11 @@ class HTTPResponsePacket : public HTTPPacket {
         void removeHttpPayloadIfPresent() {
             // If the Raw layer is indicated in layerMap, strip whatever payload follows the HTTP layer
             if (layer_map.find("Raw") != layer_map.end()) {
-                pcpp::Packet temporaryPacket = pcpp::Packet(getRawPacket().get());
-                pcpp::HttpResponseLayer* httpRequestLayer = temporaryPacket.getLayerOfType<pcpp::HttpResponseLayer>();
+                pcpp::HttpResponseLayer* httpRequestLayer = Packet.getLayerOfType<pcpp::HttpResponseLayer>();
                 if (httpRequestLayer != nullptr) {
-                    temporaryPacket.removeAllLayersAfter(httpRequestLayer); // Simplified; depends on what you mean by "remove payload"
+                    Packet.removeAllLayersAfter(httpRequestLayer); // Simplified; depends on what you mean by "remove payload"
                 }
-                const uint8_t* modifiedData = temporaryPacket.getRawPacket()->getRawData();
-                int modifiedDataLen = temporaryPacket.getRawPacket()->getRawDataLen();
-                timespec ts = temporaryPacket.getRawPacket()->getPacketTimeStamp();
-                pcpp::LinkLayerType linkType = temporaryPacket.getRawPacket()->getLinkLayerType();
-
-                uint8_t* dataCopy = new uint8_t[modifiedDataLen];
-                std::memcpy(dataCopy, modifiedData, modifiedDataLen);
-
-                setRawPacket(std::make_unique<pcpp::RawPacket>(dataCopy, modifiedDataLen, ts, false, linkType));
+                Packet.computeCalculateFields();
             }
         }
  };

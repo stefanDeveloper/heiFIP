@@ -9,24 +9,24 @@
 #include <memory>
 #include <sstream>
 
-class heiFIBPacketImage {
+class heiFIPPacketImage {
     public:
-        heiFIBPacketImage(std::vector<uint8_t> data, uint32_t cap_length) : _data(data), _cap_length(cap_length) {}
+        heiFIPPacketImage(std::vector<uint8_t> data, uint32_t cap_length) : _data(data), _cap_length(cap_length) {}
 
-        heiFIBPacketImage(std::vector<uint8_t> data) : _data(data) {
+        heiFIPPacketImage(std::vector<uint8_t> data) : _data(data) {
             PcapPacketHeader packetHeader;
             _cap_length = packetHeader.caplen;  
         }
         
-        heiFIBPacketImage(std::vector<uint8_t> data, int dim, int fill, bool auto_dim) : _data(data) {
+        heiFIPPacketImage(std::vector<uint8_t> data, int dim, int fill, bool auto_dim) : _data(data) {
             PcapPacketHeader packetHeader;
             _cap_length = packetHeader.caplen;
-            std::pair<std::vector<std::vector<uint8_t>>, std::vector<std::vector<uint8_t>>>  result = heiFIBPacketImage::get_matrix_tiled(fill, dim, auto_dim);
-            heiFIBPacketImage::matrix = result.first;
-            heiFIBPacketImage::binaries = result.second;   
+            std::pair<std::vector<std::vector<uint8_t>>, std::vector<std::vector<uint8_t>>>  result = heiFIPPacketImage::get_matrix_tiled(fill, dim, auto_dim);
+            heiFIPPacketImage::matrix = result.first;
+            heiFIPPacketImage::binaries = result.second;   
         }
         
-        ~heiFIBPacketImage() {}
+        ~heiFIPPacketImage() {}
         
         void printHexData() const {
             std::cout << std::dec << "Packet has size" << " (Size: " << get_cap_length() << " bytes):\n";
