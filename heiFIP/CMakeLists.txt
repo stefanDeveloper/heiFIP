@@ -9,8 +9,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # === 2. Maximum optimization flags for Release ===
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -funroll-loops -flto -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE   "-O3 -march=native -funroll-loops -flto -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE   "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
 
 # === 3. Manual override support ===
 
@@ -89,9 +89,9 @@ endforeach()
 # === 7. Optimization and LTO in Release builds ===
 foreach(_target IN ITEMS heiFIP main)
     target_compile_options(${_target} PUBLIC
-        $<$<CONFIG:Release>:-O3 -march=native -funroll-loops -flto -DNDEBUG>
+        $<$<CONFIG:Release>:-O3 -march=native -funroll-loops -flto=auto -DNDEBUG>
     )
     target_link_options(${_target} PUBLIC
-        $<$<CONFIG:Release>:-flto>
+        $<$<CONFIG:Release>:-flto=auto>
     )
 endforeach()
