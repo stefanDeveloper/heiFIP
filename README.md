@@ -85,6 +85,7 @@ The idea to create heiFIP came from working with Deep Learning approaches to cla
 * **OpenSSL**: For SHA256 hashing (libcrypto).
 * **OpenCV**: Version ≥ 4.0 for image handling and saving (e.g., cv::imwrite).
 * **pthread**: POSIX threads (Linux/macOS). Windows users require linking against `-lws2_32` and `-lIPHLPAPI`.
+* **libpcap**: PCAP Support (Linux/macOS)
 
 Optional:
 
@@ -106,8 +107,8 @@ cmake ..
 # We highly recommend that locating necessary dependencies is done manually since espically 
 # Pcap Plus Plus is often not installed in standard locations. While we do use scripts to automatically detect 
 # the necessary dependencies if those scripts fail you can specify the paths to the include directories of the header 
-# files aswell as the paths to libaries manually like so
-
+# files aswell as the paths to libaries manually like so. Also do not forget to specify all three of Pcap Plus Plus's
+# libaries libCommon++, libPacket++, libPcap++
 
 cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
@@ -116,7 +117,7 @@ cmake .. \
   -DPcapPlusPlus_LIBRARIES="/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libCommon++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPacket++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPcap++.a" \
   -DUSE_MANUAL_OPENSSL=ON \
   -DOPENSSL_INCLUDE_DIR="/opt/homebrew/opt/openssl@3/include" \
-  -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.dylib"
+  -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.a"
 
 # Compile
 make -j$(nproc)
