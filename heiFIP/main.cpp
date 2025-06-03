@@ -1,42 +1,55 @@
 #include "runner.cpp"
+#include <filesystem>
+#include <vector>
 
+/// @brief Lists all `.pcap` file paths in a given directory.
+/// @param dirString The path to the directory to scan.
+/// @return A vector containing full paths to `.pcap` files in the directory.
 std::vector<std::string> listPcapFilePathsInDir(const std::string& dirString) {
     std::vector<std::string> pcapFilePaths;
     std::filesystem::path dirPath{dirString};
 
+    // Return empty if the path does not exist or is not a directory
     if (!std::filesystem::exists(dirPath) || !std::filesystem::is_directory(dirPath)) {
-        return pcapFilePaths;  // empty if not a directory
+        return pcapFilePaths;
     }
 
+    // Iterate through all files in the directory
     for (auto const& entry : std::filesystem::directory_iterator(dirPath)) {
         if (!entry.is_regular_file()) 
-            continue;  // skip non‐files
+            continue;  // Skip directories or special files
 
         std::filesystem::path filepath = entry.path();
         if (filepath.extension() == ".pcap") {
-            // Push the full path (as a string)
-            pcapFilePaths.push_back(filepath.string());
+            pcapFilePaths.push_back(filepath.string());  // Store full file path
         }
     }
 
     return pcapFilePaths;
 }
 
+/// @brief Extracts the filename without extension from a full file path.
+/// @param fullPath The complete file path.
+/// @return The filename without its extension.
 std::string filenameWithoutExtension(const std::string& fullPath) {
     std::filesystem::path p{fullPath};
     return p.filename().stem().string();
 }
 
-// Main function to demonstrate the usage of the Runner
+/// @brief Entry point of the application.
+/// Demonstrates loading `.pcap` files and generating images using a Runner object.
 int main() {
-
-    std::string output_dir = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFPGit/heiFIP/build/";  // Update with actual output path
+    // Paths to input `.pcap` directory and output image directory
+    std::string output_dir = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFPGit/heiFIP/build/";
     std::string input_dir = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFPGit/tests/pcaps/http";
+
+    // Retrieve all `.pcap` files from the input directory
     std::vector<std::string> files = listPcapFilePathsInDir(input_dir);
     
-    std::atomic<int> pbar(0);
-    Runner runner(4);
+    std::atomic<int> pbar(0);  // Atomic progress counter
+    Runner runner(4);          // Runner with a thread pool of size 4
 
+    // Predefined argument sets for various image generation strategies
     FlowImageArgs args{16, true, 0};
     FlowImageTiledFixedArgs args2{16, 0, 3};
     FlowImageTiledAutoArgs args3{16, 0, true};
@@ -44,24 +57,23 @@ int main() {
     MarkovTransitionMatrixPacketArgs args5{};
     PacketImageArgs args6{16, 0, true};
 
-    for (std::string filepath: files) {
-        // Simulate calling the method with appropriate parameters
+    // Process each `.pcap` file and generate an image
+    for (const std::string& filepath : files) {
         runner.create_image(
-            filenameWithoutExtension(filepath),
-            filepath, 
-            output_dir,
-            args3,  // args placeholder
-            pbar,
-            PacketProcessorType::HEADER,  // Example of using HEADER processing
-            ImageType::FlowImageTiledAuto,  // Example: pass nullptr for NetworkTrafficImage
-            1,  // min_image_dim
-            2000,  // max_image_dim
-            1,  // min_packets_per_flow
-            2000,  // max_packets_per_flow
-            false  // remove_duplicates
+            filenameWithoutExtension(filepath),  // Image name based on filename
+            filepath,                            // Path to `.pcap` input file
+            output_dir,                          // Where to save output image
+            args3,                               // Argument set (select one appropriate for image type)
+            PacketProcessorType::HEADER,         // Use HEADER for packet processing
+            ImageType::FlowImageTiledAuto,       // Type of image to generate
+            1,                                   // Minimum image dimension
+            2000,                                // Maximum image dimension
+            1,                                   // Minimum packets per flow
+            2000,                                // Maximum packets per flow
+            false                                // Whether to remove duplicate packets
         );
     }
-    
-    // std::cout << "Process completed." << std::endl;
+
+    // return 0 indicates successful execution
     return 0;
 }

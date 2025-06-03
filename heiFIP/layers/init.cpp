@@ -5,14 +5,14 @@
 #include <unordered_set>
 #include <PcapFileDevice.h>
 #include <Packet.h>
+#include <memory>
+
 #include "packet.cpp"
 #include "dns.cpp"
 #include "http.cpp"
 #include "ip.cpp"
 #include "ssh.cpp"
 #include "transport.cpp"
-#include <memory>
-
 
 enum class SupportedHeaderType {
     IP,

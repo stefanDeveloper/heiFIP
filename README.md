@@ -134,6 +134,7 @@ cmake --build build
 After installation the command line interface can be used to extract images from pcap files witht he following command
 ```bash
 ./heiFIPCpp \
+  --name HelloHeiFIP
   --input /path/to/capture.pcap \
   --output /path/to/outdir \
   --threads 4 \
@@ -169,6 +170,7 @@ After installation the command line interface can be used to extract images from
 | `--min-pkts`        | Minimum packets per flow (for tiled/flow modes)                |
 | `--max-pkts`        | Maximum packets per flow                                       |
 | `--remove-dup`      | Remove duplicate flows/packets by hash                         |
+| `--name      `      | Filname of processed image                                     |
 | `-h`, `--help`      | Show this help message                                         |
 
 ## Extending
