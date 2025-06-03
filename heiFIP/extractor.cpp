@@ -114,7 +114,7 @@ class FIPExtractor {
                 throw std::runtime_error("Input file does not exist");
             }
             
-            std::vector<std::unique_ptr<FIPPacket>> processed_packets = processor.readPacketsFile(input_file, preprocessing_type, remove_duplicates);
+            std::vector<std::unique_ptr<FIPPacket>> processed_packets = processor.readPacketsFile(input_file, preprocessing_type, remove_duplicates, max_packets_per_flow);
             return createMatrix(
                 processed_packets,
                 preprocessing_type,
@@ -224,6 +224,8 @@ class FIPExtractor {
             }
     
             case ImageType::FlowImageTiledAuto: {
+                                std::cout << std::to_string(packets_copy.size()) << std::endl;
+
                 if (packets.size() < static_cast<size_t>(min_packets_per_flow)) {
                     return {};
                 }

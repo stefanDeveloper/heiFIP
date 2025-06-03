@@ -57,7 +57,7 @@ int main() {
             1,  // min_image_dim
             2000,  // max_image_dim
             1,  // min_packets_per_flow
-            100,  // max_packets_per_flow
+            2000,  // max_packets_per_flow
             false  // remove_duplicates
         );
     }

@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Packet.h"
-#include "TcpLayer.h"
-#include "UdpLayer.h"
-#include "PayloadLayer.h"
-#include "IPv4Layer.h"
-#include "HttpLayer.h"
+#include <Packet.h>
+#include <TcpLayer.h>
+#include <UdpLayer.h>
+#include <PayloadLayer.h>
+#include <IPv4Layer.h>
+#include <HttpLayer.h>
 
 #include "header.cpp"
 #include "ip.cpp"
@@ -47,7 +47,7 @@ class TransportPacket : public IPPacket {
                 oss << static_cast<int>(flags) << "," << optionsCount;
                 std::string hashInput = oss.str();
 
-                // Hash it using OpenSSL MD5
+                // Hash it using OpenSSL SHA256
                 unsigned char digest[SHA256_DIGEST_LENGTH];
                 SHA256(reinterpret_cast<const unsigned char*>(hashInput.c_str()), hashInput.length(), digest);
 
