@@ -120,7 +120,7 @@ public:
     }
 
     /// Accessor for the final tiled flow image
-    std::vector<std::vector<uint8_t>>& get_matrix() {
+    const std::vector<std::vector<uint8_t>>& get_matrix() const {
         return matrix;
     }
 
@@ -260,7 +260,7 @@ public:
     }
 
     /// Accessor for the computed 16×16 matrix
-    std::vector<std::vector<uint8_t>>& get_matrix() {
+    const std::vector<std::vector<uint8_t>>& get_matrix() const {
         return matrix;
     }
 

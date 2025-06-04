@@ -62,7 +62,7 @@ public:
      * @brief Get the final tiled image matrix (fixed size: cols*dim by cols*dim).
      * @return Reference to a 2D vector<uint8_t> representing the tiled image.
      */
-    std::vector<std::vector<uint8_t>>& get_matrix() {
+    const std::vector<std::vector<uint8_t>>& get_matrix() const {
         return matrix;
     }
 

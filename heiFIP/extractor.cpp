@@ -1,16 +1,19 @@
 #pragma once
 
+#include <filesystem>
+#include <algorithm>
+#include <opencv2/opencv.hpp>
+#include <string>
+#include <iostream>
+#include <concepts>
+
 #include "init.cpp"
 #include "flow.cpp"
 #include "flow_tiled_auto.cpp"
 #include "flow_tiled_fixed.cpp"
 #include "markov_chain.cpp"
 #include "heiFIPPacketImage.cpp"
-#include <filesystem>
-#include <algorithm>
-#include <opencv2/opencv.hpp>
-#include <string>
-#include <iostream>
+
 
 /**
  * @struct FlowImageArgs
@@ -102,6 +105,15 @@ using ImageArgsVariant = std::variant<
  */
 using UInt8Matrix = std::vector<std::vector<std::vector<uint8_t>>>;
 
+// This concept checks on thing on ImgType:
+//  1) `image.get_matrix()` must be valid and return something convertible to
+//     const std::vector<std::vector<uint8_t>>&
+template<typename ImgType>
+concept IsFlowImage = requires(const ImgType& image) {
+    // Require `get_matrix() -> std::vector<std::vector<uint8_t>>&`
+    { image.get_matrix() } -> std::convertible_to<const std::vector<std::vector<uint8_t>>&>;
+};
+
 /**
  * @enum ImageType
  * @brief Enumeration of supported image‐generation modes.
@@ -149,14 +161,15 @@ public:
      *                         and reject if it already exists. (Currently commented out; future feature.)
      * @return true if image passes all checks, false otherwise.
      */
-    template<typename ImgType>
+
+    template<IsFlowImage ImgType>
     bool verify(const ImgType& image,
                 size_t minImageDim,
                 size_t maxImageDim,
                 bool removeDuplicates) 
     {
-        size_t height = image.size();
-        size_t width  = image[0].size();
+        size_t height = image.get_matrix().size();
+        size_t width  = image.get_matrix()[0].size();
 
         // Enforce minimum dimension constraint:
         if (height < minImageDim || width < minImageDim) {
@@ -172,17 +185,14 @@ public:
             return false;
         }
 
-        // The duplicate removal logic is disabled for now:
-        /*
         if (removeDuplicates) {
-            std::string raw(reinterpret_cast<const char*>(image.data()), image.dataSize());
-            if (imagesCreatedSet.count(raw)) {
+            std::vector<std::vector<uint8_t>> matrix = image.get_matrix();
+            if (imagesCreatedSet.count(matrix)) {
                 std::cout << "[!] Image not created: duplicate detected.\n";
                 return false;
             }
-            imagesCreatedSet.insert(raw);
+            imagesCreatedSet.insert({matrix, true});
         }
-        */
 
         return true; 
     }
@@ -365,7 +375,7 @@ public:
                 FlowImage image(packets_copy, flowArgs.dim, flowArgs.fill, flowArgs.append);
 
                 // Validate the resulting 2D matrix, then return it in a 1-element vector if valid:
-                if (verify(image.get_matrix(), min_image_dim, max_image_dim, remove_duplicates)) {
+                if (verify(image, min_image_dim, max_image_dim, remove_duplicates)) {
                     return { image.get_matrix() };
                 }
                 return {};
@@ -379,7 +389,7 @@ public:
                 auto tiledArgs = std::get<FlowImageTiledFixedArgs>(args);
                 FlowImageTiledFixed image(packets_copy, tiledArgs.dim, tiledArgs.fill, tiledArgs.cols);
 
-                if (verify(image.get_matrix(), min_image_dim, max_image_dim, remove_duplicates)) {
+                if (verify(image, min_image_dim, max_image_dim, remove_duplicates)) {
                     return { image.get_matrix() };
                 }
                 return {};
@@ -393,7 +403,7 @@ public:
                 auto autoArgs = std::get<FlowImageTiledAutoArgs>(args);
                 FlowImageTiledAuto image(packets_copy, autoArgs.dim, autoArgs.fill, autoArgs.auto_dim);
 
-                if (verify(image.get_matrix(), min_image_dim, max_image_dim, remove_duplicates)) {
+                if (verify(image, min_image_dim, max_image_dim, remove_duplicates)) {
                     return { image.get_matrix() };
                 }
                 return {};
@@ -420,7 +430,7 @@ public:
                     auto matrix = image.get_matrix();
 
                     // Only include if it passes dimension checks:
-                    if (verify(matrix, min_image_dim, max_image_dim, remove_duplicates)) {
+                    if (verify(image, min_image_dim, max_image_dim, remove_duplicates)) {
                         images.push_back(matrix);
                     }
                 }
@@ -436,7 +446,7 @@ public:
                 auto markovFlowArgs = std::get<MarkovTransitionMatrixFlowArgs>(args);
                 MarkovTransitionMatrixFlow image(packets_copy, markovFlowArgs.cols);
 
-                if (verify(image.get_matrix(), min_image_dim, max_image_dim, remove_duplicates)) {
+                if (verify(image, min_image_dim, max_image_dim, remove_duplicates)) {
                     return { image.get_matrix() };
                 }
                 return {};
@@ -462,7 +472,7 @@ public:
                     MarkovTransitionMatrixPacket image(packetImage);
                     auto matrix = image.get_matrix();
 
-                    if (verify(matrix, min_image_dim, max_image_dim, remove_duplicates)) {
+                    if (verify(image, min_image_dim, max_image_dim, remove_duplicates)) {
                         images.push_back(matrix);
                     }
                 }
@@ -525,4 +535,5 @@ public:
 
 private:
     PacketProcessor processor; ///< Responsible for reading pcap data, handling preprocessing, and converting RawPacket → FIPPacket
+    std::map<std::vector<std::vector<uint8_t>>, bool> imagesCreatedSet;
 };

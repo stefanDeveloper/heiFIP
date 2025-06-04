@@ -62,7 +62,7 @@ public:
      * @brief Get the final tiled image matrix (square of tiles stacked).
      * @return Reference to a 2D vector<uint8_t> of size [dim_total*dim][dim_total*dim].
      */
-    std::vector<std::vector<uint8_t>>& get_matrix() {
+    const std::vector<std::vector<uint8_t>>& get_matrix() const {
         return matrix;
     }
 

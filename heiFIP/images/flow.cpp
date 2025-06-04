@@ -67,7 +67,7 @@ public:
      * If append=true, numRows = ceil(totalBytes / dim) and numCols = dim.
      * If append=false, numRows = number of packets and numCols = max packet length.
      */
-    std::vector<std::vector<uint8_t>>& get_matrix() {
+    const std::vector<std::vector<uint8_t>>& get_matrix() const {
         return matrix;
     }
 

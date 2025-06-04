@@ -294,7 +294,7 @@ public:
      *
      * Note: If get_matrix_tiled() was never called, matrix may be empty.
      */
-    std::vector<std::vector<uint8_t>>& get_matrix() {
+    const std::vector<std::vector<uint8_t>>& get_matrix() const {
         return matrix;
     }
 
