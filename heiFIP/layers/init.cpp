@@ -48,7 +48,7 @@ enum class PacketProcessorType {
 
 /**
  * PacketProcessor orchestrates per-packet handling across supported protocols,
- * accumulates packets, and can write them out to a PCAP file.
+ * accumulates packets, and returns owning unique pointers to them.
  */
 class PacketProcessor {
     public:
@@ -68,23 +68,6 @@ class PacketProcessor {
          */
         void addPacket(pcpp::Packet* packet) {
             packets.push_back(packet);
-        }
-    
-        /**
-         * Write all buffered packets to a PCAP file.
-         * @param baseFilename name without extension; "_converted.pcap" will be appended.
-         */
-        void writePackets(const std::string& baseFilename) {
-            std::string outName = baseFilename + "_converted.pcap";
-            pcpp::PcapFileWriterDevice writer(outName, pcpp::LINKTYPE_ETHERNET);
-            if (!writer.open()) {
-                // Unable to open output file
-                return;
-            }
-            for (pcpp::Packet* pkt : packets) {
-                writer.writePacket(*(pkt->getRawPacket()));
-            }
-            writer.close();
         }
 
     /**
@@ -167,61 +150,6 @@ class PacketProcessor {
         std::string fileExtension;
         std::unordered_set<std::string> hashDict;
         std::vector<pcpp::Packet*> packets;  // Stored packets to write out
-    
-        // TLS support is integrated via PcapPlusPlus; ensure the TLS plugin library
-        // is linked in your CMake configuration.
-
-    std::string getProtocolTypeAsString(pcpp::ProtocolType protocolType)
-    {
-        switch (protocolType)
-        {
-        case pcpp::Ethernet:
-            return "Ethernet";
-        case pcpp::IPv4:
-            return "IPv4";
-        case pcpp::IPv6:
-            return "IPv6";
-        case pcpp::TCP:
-            return "TCP";
-        case pcpp::HTTPRequest:
-            return "HTTPRequest";
-        case pcpp::HTTPResponse:
-            return "HTTPResponse";
-        case pcpp::DNS:
-            return "DNS";
-        default:
-            return "Unknown";
-        }
-    }
-
-    std::unordered_map<std::string, bool> inspectRawPacket(pcpp::RawPacket* origRaw) {
-        // 1) Grab length, timestamp, etc. from the original:
-        const uint8_t*   data    = origRaw->getRawData();
-        size_t           dataLen = origRaw->getRawDataLen();
-        timespec          ts      = origRaw->getPacketTimeStamp();
-        bool             owns   = true; // we want the new RawPacket to own+free its buffer
-
-        // 2) Allocate a new buffer and copy the bytes:
-        uint8_t* copyBuf = new uint8_t[dataLen];
-        std::memcpy(copyBuf, data, dataLen);
-
-        // 3) Build a temporary RawPacket that will own “copyBuf”:
-        pcpp::RawPacket deepCopyRaw(copyBuf, (int)dataLen, ts, owns);
-
-        // 4) Now parse that deep‐copied RawPacket exactly once:
-        pcpp::Packet tempPacket(&deepCopyRaw);
-
-        std::unordered_map<std::string, bool> layer_map;
-        for (pcpp::Layer* layer = tempPacket.getFirstLayer(); layer; layer = layer->getNextLayer())
-        {
-            std::string protoName = getProtocolTypeAsString(layer->getProtocol());
-            layer_map[protoName] = true;
-        }
-
-        // 5) When tempPacket (and deepCopyRaw) go out of scope, they free only the copyBuf,
-        //    leaving the original origRaw untouched.
-        return layer_map;
-    }
 
     /**
      * Pre-process a raw pcpp::Packet into a FIPPacket subclass based on layers.

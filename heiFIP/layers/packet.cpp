@@ -127,6 +127,8 @@ protected:
                 return "IPv6";
             case pcpp::TCP:
                 return "TCP";
+            case pcpp::UDP:
+                return "UDP";
             case pcpp::HTTPRequest:
                 return "HTTPRequest";
             case pcpp::HTTPResponse:

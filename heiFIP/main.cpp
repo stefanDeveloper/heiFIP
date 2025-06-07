@@ -46,7 +46,6 @@ int main() {
     // Retrieve all `.pcap` files from the input directory
     std::vector<std::string> files = listPcapFilePathsInDir(input_dir);
     
-    std::atomic<int> pbar(0);  // Atomic progress counter
     Runner runner(4);          // Runner with a thread pool of size 4
 
     // Predefined argument sets for various image generation strategies
