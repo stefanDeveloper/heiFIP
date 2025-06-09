@@ -108,7 +108,11 @@ cmake ..
 # Pcap Plus Plus is often not installed in standard locations. While we do use scripts to automatically detect 
 # the necessary dependencies if those scripts fail you can specify the paths to the include directories of the header 
 # files aswell as the paths to libaries manually like so. Also do not forget to specify all three of Pcap Plus Plus's
-# libaries libCommon++, libPacket++, libPcap++
+# libaries libCommon++, libPacket++, libPcap++. For OpenCV doing this manually while possible, due to number of links 
+# necessary, is very difficult. Since OpenCV is configured for Cmake anyway this is unnecessary anyway. When using macOS
+# you need to be very careful that the linked libraries are not Intel (x86_64) bottles, since if this happens the code
+# will still be compiled as ARM64 but dynamically linking against x86_64 .dylib. This forces macOS to convert 
+# back to ARM64 at runtime using Rosetta 2 which encures significant overhead. So if possible use a Linux distribution
 
 cmake .. \
   -DCMAKE_BUILD_TYPE=Release \
