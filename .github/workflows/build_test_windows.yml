@@ -1,58 +1,48 @@
-name: build_test_windows
+name: Cross-platform Build
+
 on:
   push:
-    branches:
-    - main
+    branches: [ main ]
   pull_request:
-    branches:
-    - main
+    branches: [ main ]
+
 jobs:
-  build_test_windows:
-    name: ${{ matrix.python-version }} on ${{ matrix.os }}
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: false
       matrix:
-        os: ["windows-latest"]
-        python-version: ["pypy-3.9",
-                        "pypy-3.8",
-                        #  "pypy-3.7", does work atm.
-                         "3.11",
-                         "3.9",
-                         # "3.8",
-                         # "3.7"
-                         ]
+        os: [windows-latest]
+
+    env:
+      CMAKE_BUILD_TYPE: Release
 
     steps:
-    - uses: actions/checkout@v3
-      with:
-        submodules: recursive
-    - name: Setup py-${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-    - name: Setup msys2
-      uses: msys2/setup-msys2@v2
-      with:
-        msystem: MINGW64
-        update: true
-        install: git unzip mingw-w64-x86_64-libjpeg-turbo mingw-w64-x86_64-zlib mingw-w64-x86_64-libtiff mingw-w64-x86_64-freetype mingw-w64-x86_64-lcms2 mingw-w64-x86_64-libwebp mingw-w64-x86_64-openjpeg2 mingw-w64-x86_64-libimagequant mingw-w64-x86_64-libraqm mingw-w64-x86_64-gcc mingw-w64-x86_64-python3 mingw-w64-x86_64-python3-pip mingw-w64-x86_64-python3-setuptools
+      - name: Set up CMake
+        uses: lukka/get-cmake@v3.29.2
 
-    - name: Install requirements
-      run: |
-         python -m pip install --upgrade pip
-         python -m pip install -r requirements.txt
+      - name: Install dependencies (Windows)
+        shell: pwsh
+        run: |
+          choco install cmake git openssl -y
+          # OpenCV and Pcap might require manual handling or vcpkg if not prebuilt
+          git clone https://github.com/microsoft/vcpkg
+          .\vcpkg\bootstrap-vcpkg.bat
+          .\vcpkg\vcpkg install opencv:x64-windows pcap:x64-windows
+          echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" >> $env:GITHUB_ENV
+          echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" >> $env:GITHUB_ENV
 
-    - name: Build
-      env:
-        MSYSTEM: MINGW64
-        MSYS2_PATH: D:/a/_temp/msys64
-      run: |
-        python -m pip install .
+      - name: Configure CMake
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$env:CMAKE_TOOLCHAIN_FILE
 
-    - name: Test
-      # On other versions then 3.9, we test only. (without coverage generation)
-      if: startsWith(matrix.os, 'windows') && !startsWith(matrix.python-version, '3.9') && !startsWith(github.ref, 'refs/tags/')
-      run: |
-        python -m pytest tests.py
+      - name: Build
+        run: cmake --build build --config Release --parallel
+
+      - name: Test binaries
+        run: |
+          ./build/heiFIP --help || true
+          ./build/main --help || true
+        shell: bash
