@@ -1,21 +1,13 @@
 ![heiFIP Logo](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/assets/heiFIP_logo.png?raw=true)
 
 
---------------------------------------------------------------------------------
+### 📦 What is **heiFIP**?
 
-**heiFIP** stands for Heidelberg Flow Image Processor.
-It is a tool designed to extract essential parts of packets and convert them into images for deep learning purposes.
-heiFIP supports different formats and orientations.
-Currently, we only support **offline** network data analysis.
-However, we plan to adapt our library to support **online** network data too to enable live-probing of models.
+**heiFIP** (Heidelberg Flow Image Processor) is an open-source tool that transforms network traffic into image representations, tailored for Deep Learning research. It extracts key packet or flow data and converts it into structured images, enabling reproducible experiments in areas like malware classification, anomaly detection, and traffic analysis.
 
+
+### 📊 Project Status
 <table>
-<tr>
-  <td><b>Latest Release</b></td>
-  <td>
-    <span style="background-color: #007BFF; color: white; padding: 4px 8px; border-radius: 4px;">Version 1.0</span>
-  </td>
-</tr>
 <tr>
   <td><b>Project License</b></td>
   <td>
@@ -24,14 +16,7 @@ However, we plan to adapt our library to support **online** network data too to 
     </a>
   </td>
 </tr>
-<tr>
-  <td><b>Citation</b></td>
-  <td>
-    <a href="https://zenodo.org/badge/latestdoi/522472839">
-    <img src="https://zenodo.org/badge/522472839.svg?style=for-the-badge" alt="Citation" />
-    </a>
-  </td>
-</tr>
+
 <tr>
   <td><b>Continuous Integration</b></td>
   <td>
@@ -57,27 +42,47 @@ However, we plan to adapt our library to support **online** network data too to 
   - [**Authors**](#authors)
 - [**License**](#license)
 
-## Motivation
+### Motivation
 
-The idea to create heiFIP came from working with Deep Learning approaches to classify malware traffic on images. Many papers use image representation of network traffic, but reproducing their results was quite cumbersome. As a result, we found that there is currently no official library that supports reproducible images of network traffic. For this reason, we developed heiFIP to easily create images of network traffic and reproduce ML/DL results. Researchers can use this library as a baseline for their work to enable other researchers to easily recreate their findings.
+**heiFIP** was born from the challenge of reproducing Deep Learning research that visualizes network traffic as images—an increasingly popular method in malware and anomaly detection. While many papers leverage this technique, there was no unified tool or library to generate these traffic images in a consistent and reproducible way.
 
-## Main Features
+With heiFIP, we fill this gap by providing an open-source library designed to:
 
-- **Different Images**: Currently, we support plain packet to byte representation, and flow to byte representation with one channel each. An image is created with same width and height for a quadratic representation.
-  - **Flow Images** converts a set of packets into an image. It supports the following modifications:
-    - **Max images dimension** allows you to specify the maximum image dimension. If the packet is larger than the specified size, it will cut the remaining pixel.
-    - **Min image dimesion** allows you to specify the minimum image dimension. If the packet is smaller than the specified size, it fills the remaining pixel with 0.
-    - **Remove duplicates** allows you to automatically remove same traffic.
-    - **Append** each flow to each other or write each packet to a new row.
-    - **Tiled** each flow is tiled into a square image representation.
-    - **Min packets per flow** allows you to specify the minimum number of packets per flow. If the total number of packets is too small, no image will be created.
-    - **Max packets per flow** allows you to specify the maximum number of packets per flow. If the total number of packets is too great, the remaining images are discarded.
-  - **Packet Image** converts a single packet into an image.
-  - **Markov Transition Matrix Image**: converts a packet or a flow into a Markov representation.
-- **Header** processing allows you to customize header fields of different protocols. It aims to remove biasing fields.
-- **Remove Payload** options allows you to only work on header data.
-- **Fast and flexible**: The main image precessing is in raw bytes inside the image classes while for the header preprocessing is PcapPlusPlus is used.
-- **Machine learning orientation**: heiFIP aims to make Deep Learning approaches using network data as images reproducible and deployable. Using heiFIP as a common framework enables researches to test and verify their models.
+* Simplify the conversion of raw network traffic into image formats,
+* Accelerate research reproducibility,
+* Enable standardized benchmarks for ML/DL tasks involving network data.
+
+Whether you're a researcher looking for a strong starting point or a developer seeking fast and flexible traffic visualization, **heiFIP makes network traffic image generation easy and reliable**.
+
+## ✨ Key Features
+
+* ### 📷 **Multiple Image Representations**
+
+  * **Flow Images**: Convert sets of packets into image grids, with full control over:
+
+    * Minimum & maximum image dimensions
+    * Min/max packets per flow
+    * Tiling, appending, or row-wise representation
+    * Duplicate flow removal
+  * **Packet Images**: Represent individual packets as fixed-size images.
+  * **Markov Images**: Create Markov Transition Matrix (MTM) images from packet sequences or flows.
+
+* ### 🧠 **ML/DL-Ready**
+
+  * Designed for easy integration into Deep Learning pipelines.
+  * Facilitates reproducible experiments by enforcing consistent traffic-to-image conversions.
+  * Provides a reliable baseline for academic benchmarking.
+
+* ### ⚙️ **Advanced Preprocessing**
+
+  * **Header customization**: Strip or modify specific protocol headers to reduce dataset bias.
+  * **Payload removal**: Focus solely on headers for privacy-sensitive or protocol-focused research.
+
+* ### 🚀 **Performance & Flexibility**
+
+  * Built on raw byte processing for speed.
+  * Leverages **PcapPlusPlus** for robust packet and header manipulation.
+  * Supports high-volume PCAP processing with configurable parameters.
 
 ## Examples
 
@@ -104,6 +109,8 @@ Optional:
 
 ## Building from source
 
+>[!IMPORTANT]
+> You can also download a pre-compiled version for easy use!.
 
 ```bash
 # Clone this repo
