@@ -38,12 +38,10 @@ jobs:
           cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_MANUAL_PCAPPLUSPLUS=ON \
-            -DPcapPlusPlus_INCLUDE_DIRS="/opt/homebrew/Cellar/pcapplusplus/include" \
-            -DPcapPlusPlus_LIBRARIES="/opt/homebrew/Cellar/pcapplusplus/lib/libCommon++.a\;/opt/homebrew/Cellar/pcapplusplus/lib/libPacket++.a\;/opt/homebrew/Cellar/pcapplusplus/lib/libPcap++.a" \
+            -DPcapPlusPlus_INCLUDE_DIRS="/opt/homebrew/Cellar/pcapplusplus/25.05/include" \
+            -DPcapPlusPlus_LIBRARIES="/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libCommon++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPacket++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPcap++.a" \
             -DUSE_MANUAL_OPENSSL=ON \
             -DOPENSSL_INCLUDE_DIR="/opt/homebrew/opt/openssl@3/include" \
             -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.a"
           
           make -j$(nproc)
-
-          cmake --build build
