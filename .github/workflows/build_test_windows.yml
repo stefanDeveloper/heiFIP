@@ -23,6 +23,16 @@ jobs:
       - name: Set up CMake
         uses: lukka/get-cmake@v3.29.2
 
+      - name: Cache vcpkg (Windows)
+        uses: actions/cache@v4
+        with:
+          path: |
+            vcpkg/packages
+            vcpkg/buildtrees
+            vcpkg/installed
+          key: windows-vcpkg-${{ hashFiles('vcpkg.json') }}
+          restore-keys: windows-vcpkg-
+
       - name: Install dependencies (Windows)
         shell: pwsh
         run: |
@@ -31,18 +41,19 @@ jobs:
           git clone https://github.com/microsoft/vcpkg
           .\vcpkg\bootstrap-vcpkg.bat
           .\vcpkg\vcpkg install opencv:x64-windows pcap:x64-windows
+          .\vcpkg\vcpkg pcapplusplus
           echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" >> $env:GITHUB_ENV
           echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" >> $env:GITHUB_ENV
 
-      - name: Configure CMake
+      - name: Configure and Build (Windows)
+        shell: pwsh
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE=$env:CMAKE_TOOLCHAIN_FILE
-
-      - name: Build
-        run: cmake --build build --config Release --parallel
-
-      - name: Test binaries
-        run: |
-          ./build/heiFIP --help || true
-          ./build/main --help || true
-        shell: bash
+          cmake -S . -B build `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DUSE_MANUAL_PCAPPLUSPLUS=ON `
+            -DPcapPlusPlus_INCLUDE_DIRS="${env:GITHUB_WORKSPACE}\\pcappp\\include" `
+            -DPcapPlusPlus_LIBRARIES="${env:GITHUB_WORKSPACE}\\pcappp\\lib\\libCommon++.lib;${env:GITHUB_WORKSPACE}\\pcappp\\lib\\libPacket++.lib;${env:GITHUB_WORKSPACE}\\pcappp\\lib\\libPcap++.lib" `
+            -DUSE_MANUAL_OPENSSL=ON `
+            -DOPENSSL_INCLUDE_DIR="C:\\Program Files\\OpenSSL-Win64\\include" `
+            -DOPENSSL_CRYPTO_LIBRARY="C:\\Program Files\\OpenSSL-Win64\\lib\\libcrypto.lib"
+          cmake --build build --config Release

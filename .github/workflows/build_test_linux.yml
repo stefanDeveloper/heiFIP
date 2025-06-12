@@ -34,24 +34,25 @@ jobs:
             libpthread-stubs0-dev \
             git
 
-      - name: Clone and build PcapPlusPlus (Linux/macOS)
+      - name: Install precompiled PcapPlusPlus (Ubuntu)
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          git clone --depth 1 https://github.com/seladb/PcapPlusPlus.git
-          cd PcapPlusPlus
-          ./mk/configure-linux.sh --default || ./mk/configure-mac_os_x.sh --default
-          make -j$(nproc || sysctl -n hw.ncpu)
-          sudo make install
-          sudo ldconfig || true
+          curl -LO https://github.com/seladb/PcapPlusPlus/releases/download/v25.05/pcapplusplus-25.05-ubuntu-22.04-gcc-11.4.0-x86_64.tar.gz
+          tar -xzf pcapplusplus-25.05-ubuntu-22.04-gcc-11.4.0-x86_64.tar.gz
 
-      - name: Configure CMake
+          sudo cp -r include/* /usr/local/include/
+          sudo cp -r lib/* /usr/local/lib/
+          sudo ldconfig
+
+      - name: Configure and Build (Ubuntu)
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-
-      - name: Build
-        run: cmake --build build --config Release --parallel
-
-      - name: Test binaries
-        run: |
-          ./build/heiFIP --help || true
-          ./build/main --help || true
-        shell: bash
+          mkdir -p build
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_MANUAL_PCAPPLUSPLUS=ON \
+            -DPcapPlusPlus_INCLUDE_DIRS="${GITHUB_WORKSPACE}/pcapplusplus/include" \
+            -DPcapPlusPlus_LIBRARIES="${GITHUB_WORKSPACE}/pcapplusplus/lib/libCommon++.a\;${GITHUB_WORKSPACE}/pcapplusplus/lib/libPacket++.a\;${GITHUB_WORKSPACE}/pcapplusplus/lib/libPcap++.a" \
+            -DUSE_MANUAL_OPENSSL=ON \
+            -DOPENSSL_INCLUDE_DIR="/usr/include/openssl" \
+            -DOPENSSL_CRYPTO_LIBRARY="/usr/lib/x86_64-linux-gnu/libcrypto.a"
+          cmake --build build --config Release

@@ -26,26 +26,17 @@ jobs:
       - name: Install dependencies (macOS)
         run: |
           brew update
-          brew install openssl opencv libpcap cmake git
+          brew install openssl opencv libpcap cmake git pcapplusplus
 
-      - name: Clone and build PcapPlusPlus (Linux/macOS)
+      - name: Configure and Build (macOS)
         run: |
-          git clone --depth 1 https://github.com/seladb/PcapPlusPlus.git
-          cd PcapPlusPlus
-          ./mk/configure-linux.sh --default || ./mk/configure-mac_os_x.sh --default
-          make -j$(nproc || sysctl -n hw.ncpu)
-          sudo make install
-          sudo ldconfig || true
-
-      - name: Configure CMake
-        run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release 
-
-      - name: Build
-        run: cmake --build build --config Release --parallel
-
-      - name: Test binaries
-        run: |
-          ./build/heiFIP --help || true
-          ./build/main --help || true
-        shell: bash
+          mkdir -p build
+          cmake -S . -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DUSE_MANUAL_PCAPPLUSPLUS=ON \
+            -DPcapPlusPlus_INCLUDE_DIRS="/opt/homebrew/Cellar/pcapplusplus/include" \
+            -DPcapPlusPlus_LIBRARIES="/opt/homebrew/Cellar/pcapplusplus/lib/libCommon++.a\;/opt/homebrew/Cellar/pcapplusplus/lib/libPacket++.a\;/opt/homebrew/Cellar/pcapplusplus/lib/libPcap++.a" \
+            -DUSE_MANUAL_OPENSSL=ON \
+            -DOPENSSL_INCLUDE_DIR="/opt/homebrew/opt/openssl@3/include" \
+            -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.a"
+          cmake --build build --config Release
