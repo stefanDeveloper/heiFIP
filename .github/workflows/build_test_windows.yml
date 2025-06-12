@@ -23,7 +23,7 @@ jobs:
       - name: Set up CMake
         uses: lukka/get-cmake@v3.29.2
 
-      - name: Cache vcpkg (Windows)
+      - name: Cache vcpkg
         uses: actions/cache@v4
         with:
           path: |
@@ -33,7 +33,7 @@ jobs:
           key: windows-vcpkg-${{ hashFiles('vcpkg.json') }}
           restore-keys: windows-vcpkg-
 
-      - name: Install dependencies (Windows)
+      - name: Install dependencies
         shell: pwsh
         run: |
           choco install cmake git openssl -y
@@ -45,7 +45,7 @@ jobs:
           echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" >> $env:GITHUB_ENV
           echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" >> $env:GITHUB_ENV
 
-      - name: Configure and Build (Windows)
+      - name: Configure and Build
         shell: pwsh
         run: |
           cd heiFIP/

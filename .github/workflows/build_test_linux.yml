@@ -34,8 +34,7 @@ jobs:
             libpthread-stubs0-dev \
             git
 
-      - name: Install precompiled PcapPlusPlus (Ubuntu)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Install precompiled PcapPlusPlus
         run: |
           curl -LO https://github.com/seladb/PcapPlusPlus/releases/download/v25.05/pcapplusplus-25.05-ubuntu-22.04-gcc-11.4.0-x86_64.tar.gz
           tar -xzf pcapplusplus-25.05-ubuntu-22.04-gcc-11.4.0-x86_64.tar.gz
@@ -44,7 +43,7 @@ jobs:
           sudo cp -r lib/* /usr/local/lib/
           sudo ldconfig
 
-      - name: Configure and Build (Ubuntu)
+      - name: Configure and Build
         run: |
           cd heiFIP/
 
