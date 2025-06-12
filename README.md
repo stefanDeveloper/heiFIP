@@ -32,6 +32,17 @@ However, we plan to adapt our library to support **online** network data too to 
     </a>
   </td>
 </tr>
+<tr>
+  <td><b>Continuous Integration</b></td>
+  <td>
+    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_linux.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_linux.yml?branch=main&logo=linux&style=for-the-badge&label=linux" alt="Linux WorkFlows" />
+    </a>
+    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_macos.yml">
+    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_macos.yml?branch=main&logo=apple&style=for-the-badge&label=macos" alt="MacOS WorkFlows" />
+    </a>
+  </td>
+</tr>
 </table>
 
 ## Table of Contents
@@ -63,7 +74,7 @@ The idea to create heiFIP came from working with Deep Learning approaches to cla
     - **Max packets per flow** allows you to specify the maximum number of packets per flow. If the total number of packets is too great, the remaining images are discarded.
   - **Packet Image** converts a single packet into an image.
   - **Markov Transition Matrix Image**: converts a packet or a flow into a Markov representation.
-- **Header** processing allows you to customize header fields of different protocols. It aims to remove biasing fields. For more details look into [header.py](https://github.com/stefanDeveloper/heiFIP/blob/heiFIP-cpp/heifip/plugins/header.cpp)
+- **Header** processing allows you to customize header fields of different protocols. It aims to remove biasing fields.
 - **Remove Payload** options allows you to only work on header data.
 - **Fast and flexible**: The main image precessing is in raw bytes inside the image classes while for the header preprocessing is PcapPlusPlus is used.
 - **Machine learning orientation**: heiFIP aims to make Deep Learning approaches using network data as images reproducible and deployable. Using heiFIP as a common framework enables researches to test and verify their models.
@@ -190,13 +201,8 @@ To add a new image type:
 
 ### Publications that use heiFIP
 
-- [A Generalizable Approach for Network Flow Image Representation for Deep Learning] - CSNet 23
-- [Explainable artificial intelligence for improving a session-based malware traffic classification with deep learning] - SSCI 23
-
-
-## Credits
-
-[NFStream](https://github.com/nfstream/nfstream) for the inspiration of the `README.md` and workflow testing.
+- S. Machmeier, M. Hoecker, V. Heuveline, "Explainable Artificial Intelligence for Improving a Session-Based Malware Traffic Classification with Deep Learning", in 2023 IEEE Symposium Series on Computational Intelligence (SSCI), Mexico-City, Mexico, 2023. https://doi.org/10.1109/SSCI52147.2023.10371980
+- S. Machmeier, M. Trageser, M. Buchwald, and V. Heuveline, "A generalizable approach for network flow image representation for deep learning", in 2023 7th Cyber Security in Networking Conference (CSNet), Montréal, Canada, 2023. https://doi.org/10.1109/CSNet59123.2023.10339761
 
 ### Authors
 
