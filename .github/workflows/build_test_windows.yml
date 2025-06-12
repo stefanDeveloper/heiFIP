@@ -40,7 +40,7 @@ jobs:
           # OpenCV and Pcap might require manual handling or vcpkg if not prebuilt
           git clone https://github.com/microsoft/vcpkg
           .\vcpkg\bootstrap-vcpkg.bat
-          .\vcpkg\vcpkg install opencv:x64-windows pcap:x64-windows
+          .\vcpkg\vcpkg install opencv:x64-windows libpcap:x64-windows
           .\vcpkg\vcpkg pcapplusplus:x64-windows
           echo "VCPKG_ROOT=${{ github.workspace }}\vcpkg" >> $env:GITHUB_ENV
           echo "CMAKE_TOOLCHAIN_FILE=${{ github.workspace }}\vcpkg\scripts\buildsystems\vcpkg.cmake" >> $env:GITHUB_ENV
@@ -63,5 +63,3 @@ jobs:
             -DOPENSSL_CRYPTO_LIBRARY="C:\Program Files\OpenSSL-Win64\lib\libcrypto.lib"
           
           make -j$(nproc)
-
-          cmake --build build
