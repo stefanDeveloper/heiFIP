@@ -55,7 +55,6 @@ jobs:
         run: |
           cd heiFIP/
 
-          # Create build directory
           mkdir -p build && cd build
           
           cmake .. \
