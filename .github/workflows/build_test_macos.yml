@@ -32,7 +32,7 @@ jobs:
             /usr/local/Cellar
           key: ${{ runner.os }}-brew-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
-            ${{ runner.os }}-brew-
+            ${{ runner.os }}-brew-${{ hashFiles('**/CMakeLists.txt') }}
 
       - name: Install dependencies
         run: |

@@ -29,7 +29,7 @@ jobs:
           path: /var/cache/apt/archives
           key: ${{ runner.os }}-apt-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
-            ${{ runner.os }}-apt-
+            ${{ runner.os }}-apt-${{ hashFiles('**/CMakeLists.txt') }}
 
       - name: Install dependencies
         run: |
