@@ -11,31 +11,9 @@ However, we plan to adapt our library to support **online** network data too to 
 
 <table>
 <tr>
-  <td><b>Live Notebook</b></td>
-  <td>
-    <a href="https://mybinder.org/v2/gh/stefanDeveloper/heiFIP-tutorials/HEAD?labpath=demo_notebook.ipynb">
-    <img src="https://img.shields.io/badge/notebook-launch-blue?logo=jupyter&style=for-the-badge" alt="live notebook" />
-    </a>
-  </td>
-</tr>
-<tr>
   <td><b>Latest Release</b></td>
   <td>
-    <a href="https://pypi.python.org/pypi/heifip">
-    <img src="https://img.shields.io/pypi/v/heifip.svg?logo=pypi&style=for-the-badge" alt="latest release" />
-    </a>
-  </td>
-</tr>
-
-<tr>
-  <td><b>Supported Versions</b></td>
-  <td>
-    <a href="https://pypi.org/project/heifip/">
-    <img src="https://img.shields.io/pypi/pyversions/heifip?logo=python&style=for-the-badge" alt="python3" />
-    </a>
-    <a href="https://pypi.org/project/heifip/">
-    <img src="https://img.shields.io/badge/pypy-3.7%20%7C%203.8%20%7C%203.9-blue?logo=pypy&style=for-the-badge" alt="pypy3" />
-    </a>
+    <span style="background-color: #007BFF; color: white; padding: 4px 8px; border-radius: 4px;">Version 1.0</span>
   </td>
 </tr>
 <tr>
@@ -62,9 +40,6 @@ However, we plan to adapt our library to support **online** network data too to 
     </a>
     <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_macos.yml">
     <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_macos.yml?branch=main&logo=apple&style=for-the-badge&label=macos" alt="MacOS WorkFlows" />
-    </a>
-    <a href="https://github.com/stefanDeveloper/heifip/actions/workflows/build_test_windows.yml">
-    <img src="https://img.shields.io/github/actions/workflow/status/stefanDeveloper/heifip/build_test_windows.yml?branch=main&logo=windows&style=for-the-badge&label=windows" alt="Windows WorkFlows" />
     </a>
   </td>
 </tr>
@@ -99,114 +74,135 @@ The idea to create heiFIP came from working with Deep Learning approaches to cla
     - **Max packets per flow** allows you to specify the maximum number of packets per flow. If the total number of packets is too great, the remaining images are discarded.
   - **Packet Image** converts a single packet into an image.
   - **Markov Transition Matrix Image**: converts a packet or a flow into a Markov representation.
-- **Header** processing allows you to customize header fields of different protocols. It aims to remove biasing fields. For more details look into [header.py](https://github.com/stefanDeveloper/heiFIP/blob/main/heifip/plugins/header.py)
+- **Header** processing allows you to customize header fields of different protocols. It aims to remove biasing fields.
 - **Remove Payload** options allows you to only work on header data.
-- **Fast and flexible**: We rely on [Scapy](https://github.com/secdev/scapy) for our sniffing and header processing. Image preparation is based on raw bytes.
+- **Fast and flexible**: The main image precessing is in raw bytes inside the image classes while for the header preprocessing is PcapPlusPlus is used.
 - **Machine learning orientation**: heiFIP aims to make Deep Learning approaches using network data as images reproducible and deployable. Using heiFIP as a common framework enables researches to test and verify their models.
 
 ## Examples
 
 | Image Type | Description | Example |
 |------------|-------------|---------|
-| Packet | Converts a single packet into a square image. Size depends on the total length | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/packet.png?raw=true) |
-| Flow | Converts a flow packet into a square image | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/flow-tiled.png?raw=true) |
-| Markov Transition Matrix Packet | Converts a packet into a Markov Transition Matrix. Size is fixed to 16x16. | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-packet.png?raw=true) |
-| Markov Transition Matrix Flow | Converts a flow into a Markov Transition Matrix. It squares the image based on the number of packets | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-flow.png?raw=true) |
+| Packet | Converts a single packet into a square image. Size depends on the total length | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/packet.png?raw=true) |
+| Flow | Converts a flow packet into a square image | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/flow-tiled.png?raw=true) |
+| Markov Transition Matrix Packet | Converts a packet into a Markov Transition Matrix. Size is fixed to 16x16. | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/markov-packet.png?raw=true) |
+| Markov Transition Matrix Flow | Converts a flow into a Markov Transition Matrix. It squares the image based on the number of packets | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/markov-flow.png?raw=true) |
+
+## Requirements
+
+* **C++ Compiler**: GCC ≥ 9.0, Clang ≥ 10, or MSVC 2019 with C++17 support.
+* **CMake**: Version ≥ 3.14
+* **PcapPlusPlus**: Installed system‑wide or built locally. ([https://github.com/seladb/PcapPlusPlus](https://github.com/seladb/PcapPlusPlus))
+* **OpenSSL**: For SHA256 hashing (libcrypto).
+* **OpenCV**: Version ≥ 4.0 for image handling and saving (e.g., cv::imwrite).
+* **pthread**: POSIX threads (Linux/macOS). Windows users require linking against `-lws2_32` and `-lIPHLPAPI`.
+* **libpcap**: PCAP Support (Linux/macOS)
+
+Optional:
+
+* **getopt\_long**: For CLI parsing (provided by libc on Linux/macOS). Windows may need `getopt` replacement.
+
+## Building from source
+
+
+```bash
+# Clone this repo
+git clone https://github.com/yourusername/heiFIPCpp.git
+cd heiFIP/heiFIP/
+
+# Create build directory
+mkdir build && cd build
+
+cmake ..
+
+# We highly recommend that locating necessary dependencies is done manually since espically 
+# Pcap Plus Plus is often not installed in standard locations. While we do use scripts to automatically detect 
+# the necessary dependencies if those scripts fail you can specify the paths to the include directories of the header 
+# files aswell as the paths to libaries manually like so. Also do not forget to specify all three of Pcap Plus Plus's
+# libaries libCommon++, libPacket++, libPcap++. For OpenCV doing this manually while possible, due to number of links 
+# necessary, is very difficult. Since OpenCV is configured for Cmake anyway this is unnecessary anyway. When using macOS
+# you need to be very careful that the linked libraries are not Intel (x86_64) bottles, since if this happens the code
+# will still be compiled as ARM64 but dynamically linking against x86_64 .dylib. This forces macOS to convert 
+# back to ARM64 at runtime using Rosetta 2 which encures significant overhead. So if possible use a Linux distribution
+
+cmake .. \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DUSE_MANUAL_PCAPPLUSPLUS=ON \
+  -DPcapPlusPlus_INCLUDE_DIRS="/opt/homebrew/Cellar/pcapplusplus/25.05/include" \
+  -DPcapPlusPlus_LIBRARIES="/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libCommon++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPacket++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPcap++.a" \
+  -DUSE_MANUAL_OPENSSL=ON \
+  -DOPENSSL_INCLUDE_DIR="/opt/homebrew/opt/openssl@3/include" \
+  -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.a"
+
+# Compile
+make -j$(nproc)
+
+# or
+cmake --build build
+
+# The executable 'heiFIPCpp' will be produced in build/
+```
+
 
 ## Getting Started
 
-Install our package using PyPi
-
-```sh
-pip install heifip
-```
-Now, you can use the integrate CLI:
-
-```sh
-> fip
-Usage: fip [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  --version   Show the version and exit.
-  -h, --help  Show this message and exit.
-
-Commands:
-  extract
-```
-
-To extract images from PCAPs, we currently split the command into flow and packet:
-
-```sh
-> fip extract
-Starting FlowImageProcessor CLI
-Usage: fip extract [OPTIONS] COMMAND [ARGS]...
-
-Options:
-  -h, --help  Show this message and exit.
-
-Commands:
-  flow
-  packet
-
-# Show help information
-> fip extract [flow/packet]-h
-Starting FlowImageProcessor CLI
-Usage: fip extract flow [OPTIONS]
-
-Options:
-  -w, --write PATH            Destination file path, stores result  [required]
-  -r, --read PATH             [required]
-  -t, --threads INTEGER       Number of parallel threads that can be used
-                              [default: 4]
-  --preprocess [NONE|HEADER]  Applies a preprocessing to the input data: none:
-                              No preprocessing payload: Only payload data is
-                              used header: Preprocesses headers
-                              (DNS,HTTP,IP,IPv6,TCP,UDP supported) to remove
-                              some biasing data  [default: NONE]
-  --min_im_dim INTEGER        Minimum dim ouput images need to have, 0=No
-                              minimum dim  [default: 0]
-  --max_im_dim INTEGER        Maximum dim ouput images can have, 0=No maximum
-                              dim  [default: 0]
-  --remove_duplicates         Within a single output folder belonging to a
-                              single input folder no duplicate images will be
-                              produced if two inputs lead to the same image
-  --min_packets INTEGER       Minimum packets that a FlowImage needs to have,
-                              0=No minimum packets per flow  [default: 0]
-  --max_packets INTEGER       Minimum packets that a FlowImage needs to have,
-                              0=No minimum packets per flow  [default: 0]
-  --append
-  --tiled
-  --width INTEGER             [default: 128]
-  -h, --help                  Show this message and exit.
-
-> fip extract flow -r /PATH/PCAPs -w /PATH/IMAGES
+After installation the command line interface can be used to extract images from pcap files witht he following command
+```bash
+./heiFIPCpp \
+  --name HelloHeiFIP
+  --input /path/to/capture.pcap \
+  --output /path/to/outdir \
+  --threads 4 \
+  --processor HEADER \
+  --mode FlowImageTiledAuto \
+  --dim 16 \
+  --apppend \
+  --fill 0 \
+  --min-dim 10 \
+  --max-dim 2000 \
+  --min-pkts 10 \
+  --max-pkts 100 \
+  --remove-dup
 ```
 
-Import FIPExtractor to run it inside your program:
+### Options
+| Flag                | Description                                                    |
+| ------------------- | -------------------------------------------------------------- |
+| `-i`, `--input`     | Input PCAP file path                                           |
+| `-o`, `--output`    | Output directory                                               |
+| `-t`, `--threads`   | Number of worker threads (default: 1)                          |
+| `-p`, `--processor` | Preprocessing: `NONE` or `HEADER`                              |
+| `-m`, `--mode`      | Image type: `PacketImage`, `FlowImage`, `FlowImageTiledFixed`, |
+|                     | `FlowImageTiledAuto`, `MarkovTransitionMatrixFlow`,            |
+|                     | `MarkovTransitionMatrixPacket`                                 |
+| `--dim`             | Base dimension for image (e.g. width/height in pixels)         |
+| `--fill`            | Fill or padding value (0–255)                                  |
+| `--cols`            | Number of columns (for tiled/fixed or Markov flow)             |
+| `--auto-dim`        | Enable auto‑dimension selection (bool)                         |
+| `--append`          | Enable auto‑dimension selection (bool)                         |
+| `--min-dim`         | Minimum allowed image dimension                                |
+| `--max-dim`         | Maximum allowed image dimension                                |
+| `--min-pkts`        | Minimum packets per flow (for tiled/flow modes)                |
+| `--max-pkts`        | Maximum packets per flow                                       |
+| `--remove-dup`      | Remove duplicate flows/packets by hash                         |
+| `--name`            | Filname of processed image                                     |
+| `-h`, `--help`      | Show this help message                                         |
 
-```python
-extractor = FIPExtractor()
-img = extractor.create_image('./test/pcaps/dns/dns-binds.pcap')
-extractor.save_image(img, './test/pcaps/dns/dns-binds.pcap')
-```
+## Extending
 
-### Building from source
+To add a new image type:
 
-Simply run:
+1. Define a new `ImageArgs` struct in `extractor.cpp`.
+2. Extend the `ImageType` enum.
+3. Implement the conversion in `PacketProcessor::createImageFromPacket()`.
+4. Update the CLI `--mode` parser to include your new type.
 
-```
-pip install .
-```
+---
 
 ### Publications that use heiFIP
 
-- [A Generalizable Approach for Network Flow Image Representation for Deep Learning] - CSNet 23
-- [Explainable artificial intelligence for improving a session-based malware traffic classification with deep learning] - SSCI 23
-
-
-## Credits
-
-[NFStream](https://github.com/nfstream/nfstream) for the inspiration of the `README.md` and workflow testing.
+- S. Machmeier, M. Hoecker, V. Heuveline, "Explainable Artificial Intelligence for Improving a Session-Based Malware Traffic Classification with Deep Learning", in 2023 IEEE Symposium Series on Computational Intelligence (SSCI), Mexico-City, Mexico, 2023. https://doi.org/10.1109/SSCI52147.2023.10371980
+- S. Machmeier, M. Trageser, M. Buchwald, and V. Heuveline, "A generalizable approach for network flow image representation for deep learning", in 2023 7th Cyber Security in Networking Conference (CSNet), Montréal, Canada, 2023. https://doi.org/10.1109/CSNet59123.2023.10339761
 
 ### Authors
 
@@ -214,6 +210,7 @@ The following people contributed to heiFIP:
 
 - [Stefan Machmeier](https://github.com/stefanDeveloper): Creator
 - [Manuel Trageser](https://github.com/maxi99manuel99): Header extraction and customization.
+- [Henri Rebitzky](https://github.com/HenriRebitzky): Coversion from python to c++
 
 ## License
 
