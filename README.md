@@ -1,8 +1,6 @@
 ![heiFIP Logo](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/assets/heiFIP_logo.png?raw=true)
 
 
-### 📦 What is **heiFIP**?
-
 **heiFIP** (Heidelberg Flow Image Processor) is an open-source tool that transforms network traffic into image representations, tailored for Deep Learning research. It extracts key packet or flow data and converts it into structured images, enabling reproducible experiments in areas like malware classification, anomaly detection, and traffic analysis.
 
 
@@ -16,7 +14,6 @@
     </a>
   </td>
 </tr>
-
 <tr>
   <td><b>Continuous Integration</b></td>
   <td>
@@ -35,11 +32,9 @@
 - [**Main Features**](#main-features)
 - [**Motivation**](#motivation)
 - [**Examples**](#examples)
+- [**Building from source**](#building-from-source)
 - [**Getting Started**](#getting-started)
-  - [**Building from source**](#building-from-source)
-- [**Citation**](#citation)
-  - [**Credits**](#credits)
-  - [**Authors**](#authors)
+- [**Authors**](#authors)
 - [**License**](#license)
 
 ### Motivation
@@ -84,7 +79,7 @@ Whether you're a researcher looking for a strong starting point or a developer s
   * Leverages **PcapPlusPlus** for robust packet and header manipulation.
   * Supports high-volume PCAP processing with configurable parameters.
 
-## Examples
+## 📦 Examples
 
 | Image Type | Description | Example |
 |------------|-------------|---------|
@@ -206,12 +201,12 @@ To add a new image type:
 
 ---
 
-### Publications that use heiFIP
+## Publications that use heiFIP
 
 - S. Machmeier, M. Hoecker, V. Heuveline, "Explainable Artificial Intelligence for Improving a Session-Based Malware Traffic Classification with Deep Learning", in 2023 IEEE Symposium Series on Computational Intelligence (SSCI), Mexico-City, Mexico, 2023. https://doi.org/10.1109/SSCI52147.2023.10371980
 - S. Machmeier, M. Trageser, M. Buchwald, and V. Heuveline, "A generalizable approach for network flow image representation for deep learning", in 2023 7th Cyber Security in Networking Conference (CSNet), Montréal, Canada, 2023. https://doi.org/10.1109/CSNet59123.2023.10339761
 
-### Authors
+## Authors
 
 The following people contributed to heiFIP:
 
