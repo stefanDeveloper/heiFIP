@@ -23,12 +23,23 @@ jobs:
       - name: Set up CMake
         uses: lukka/get-cmake@v3.29.2
 
-      - name: Install dependencies (macOS)
+      - name: Set up Homebrew cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            /Users/runner/Library/Caches/Homebrew
+            /usr/local/Homebrew/Library/Taps
+            /usr/local/Cellar
+          key: ${{ runner.os }}-brew-${{ hashFiles('**/Brewfile') }}
+          restore-keys: |
+            ${{ runner.os }}-brew-
+
+      - name: Install dependencies
         run: |
           brew update
           brew install openssl opencv libpcap cmake git pcapplusplus
 
-      - name: Configure and Build (macOS)
+      - name: Configure and Build
         run: |
           cd heiFIP/
 
