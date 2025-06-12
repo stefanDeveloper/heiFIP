@@ -30,7 +30,7 @@ jobs:
             /Users/runner/Library/Caches/Homebrew
             /usr/local/Homebrew/Library/Taps
             /usr/local/Cellar
-          key: ${{ runner.os }}-brew-${{ hashFiles('**/Brewfile') }}
+          key: ${{ runner.os }}-brew-${{ hashFiles('**/CMakeLists.txt') }}
           restore-keys: |
             ${{ runner.os }}-brew-
 
