@@ -38,7 +38,7 @@ jobs:
         run: |
           git clone --depth 1 https://github.com/seladb/PcapPlusPlus.git
           cd PcapPlusPlus
-          ./configure-linux.sh --default || ./configure-mac_os_x.sh --default
+          ./mk/configure-linux.sh --default || ./mk/configure-mac_os_x.sh --default
           make -j$(nproc || sysctl -n hw.ncpu)
           sudo make install
           sudo ldconfig || true
