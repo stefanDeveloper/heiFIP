@@ -1,4 +1,4 @@
-name: Cross-platform Build
+name: MacOS Build
 
 on:
   push:
@@ -30,8 +30,12 @@ jobs:
 
       - name: Configure and Build (macOS)
         run: |
-          mkdir -p build
-          cmake -S . -B build \
+          cd heiFIP/
+
+          # Create build directory
+          mkdir -p build && cd build
+
+          cmake .. \
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_MANUAL_PCAPPLUSPLUS=ON \
             -DPcapPlusPlus_INCLUDE_DIRS="/opt/homebrew/Cellar/pcapplusplus/include" \
@@ -39,4 +43,7 @@ jobs:
             -DUSE_MANUAL_OPENSSL=ON \
             -DOPENSSL_INCLUDE_DIR="/opt/homebrew/opt/openssl@3/include" \
             -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.a"
-          cmake --build build --config Release
+          
+          make -j$(nproc)
+
+          cmake --build build

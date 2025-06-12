@@ -55,11 +55,9 @@ jobs:
             -DCMAKE_BUILD_TYPE=Release \
             -DUSE_MANUAL_PCAPPLUSPLUS=ON \
             -DPcapPlusPlus_INCLUDE_DIRS="/usr/local/include/pcapplusplus/" \
-            -DPcapPlusPlus_LIBRARIES="/usr/local/lib/pcapplusplus/libCommon++.a\;/usr/local/lib/pcapplusplus/libPacket++.a\;/usr/local/lib/pcapplusplus/libPcap++.a" \
+            -DPcapPlusPlus_LIBRARIES="/usr/local/lib/libCommon++.a;/usr/local/lib/libPacket++.a;/usr/local/lib/libPcap++.a" \
             -DUSE_MANUAL_OPENSSL=ON \
             -DOPENSSL_INCLUDE_DIR="/usr/include/openssl" \
             -DOPENSSL_CRYPTO_LIBRARY="/usr/lib/x86_64-linux-gnu/libcrypto.a"
           
           make -j$(nproc)
-
-          cmake --build build
