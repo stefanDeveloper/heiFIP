@@ -23,48 +23,29 @@ jobs:
       - name: Set up CMake
         uses: lukka/get-cmake@v3.29.2
 
-      - name: Cache APT packages
+      - name: Cache vcpkg packages
         uses: actions/cache@v4
         with:
           path: |
-            /var/cache/apt/archives
-          key: ${{ runner.os }}-apt-${{ hashFiles('**/CMakeLists.txt') }}
+            ~/.cache/vcpkg
+            heiFIP/build/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('heiFIP/vcpkg.json') }}
           restore-keys: |
-            ${{ runner.os }}-apt-${{ hashFiles('**/CMakeLists.txt') }}
+            ${{ runner.os }}-vcpkg-
 
       - name: Install dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y \
             build-essential \
-            libssl-dev \
-            libopencv-dev \
+            pkg-config \
             libpcap-dev \
-            libpthread-stubs0-dev \
             git
-
-      - name: Install precompiled PcapPlusPlus
-        run: |
-          curl -LO https://github.com/seladb/PcapPlusPlus/releases/download/v25.05/pcapplusplus-25.05-ubuntu-22.04-gcc-11.4.0-x86_64.tar.gz
-          tar -xzf pcapplusplus-25.05-ubuntu-22.04-gcc-11.4.0-x86_64.tar.gz
-          cd pcapplusplus-25.05-ubuntu-22.04-gcc-11.4.0-x86_64
-          sudo cp -r include/* /usr/local/include/
-          sudo cp -r lib/* /usr/local/lib/
-          sudo ldconfig
 
       - name: Configure and Build
         run: |
           cd heiFIP/
-
-          mkdir -p build && cd build
-          
-          cmake .. \
+          cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Release \
-            -DUSE_MANUAL_PCAPPLUSPLUS=ON \
-            -DPcapPlusPlus_INCLUDE_DIRS="/usr/local/include/pcapplusplus/" \
-            -DPcapPlusPlus_LIBRARIES="/usr/local/lib/libCommon++.a;/usr/local/lib/libPacket++.a;/usr/local/lib/libPcap++.a" \
-            -DUSE_MANUAL_OPENSSL=ON \
-            -DOPENSSL_INCLUDE_DIR="/usr/include/openssl" \
-            -DOPENSSL_CRYPTO_LIBRARY="/usr/lib/x86_64-linux-gnu/libcrypto.a"
-          
-          make -j$(nproc)
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake --build build -j$(nproc)
