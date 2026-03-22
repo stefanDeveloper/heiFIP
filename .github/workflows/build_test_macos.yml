@@ -23,29 +23,25 @@ jobs:
       - name: Set up CMake
         uses: lukka/get-cmake@v3.29.2
 
-      - name: Set up Homebrew cache
+      - name: Cache vcpkg packages
         uses: actions/cache@v4
         with:
           path: |
-            /Users/runner/Library/Caches/Homebrew
-            /usr/local/Homebrew/Library/Taps
-            /usr/local/Cellar
-          key: ${{ runner.os }}-brew-${{ hashFiles('**/CMakeLists.txt') }}
+            ~/.cache/vcpkg
+            heiFIP/build/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('heiFIP/vcpkg.json') }}
           restore-keys: |
-            ${{ runner.os }}-brew-${{ hashFiles('**/CMakeLists.txt') }}
+            ${{ runner.os }}-vcpkg-
 
       - name: Install dependencies
         run: |
           brew update
-          brew install openssl opencv libpcap cmake git pcapplusplus
+          brew install pkg-config cmake git
 
       - name: Configure and Build
         run: |
           cd heiFIP/
-
-          mkdir -p build && cd build
-
-          cmake .. \
-            -DCMAKE_BUILD_TYPE=Release
-          
-          make
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake --build build -j$(sysctl -n hw.ncpu)

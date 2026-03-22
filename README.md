@@ -92,55 +92,38 @@ The idea to create heiFIP came from working with Deep Learning approaches to cla
 
 * **C++ Compiler**: GCC ≥ 9.0, Clang ≥ 10, or MSVC 2019 with C++17 support.
 * **CMake**: Version ≥ 3.14
-* **PcapPlusPlus**: Installed system‑wide or built locally. ([https://github.com/seladb/PcapPlusPlus](https://github.com/seladb/PcapPlusPlus))
-* **OpenSSL**: For SHA256 hashing (libcrypto).
-* **OpenCV**: Version ≥ 4.0 for image handling and saving (e.g., cv::imwrite).
-* **pthread**: POSIX threads (Linux/macOS). Windows users require linking against `-lws2_32` and `-lIPHLPAPI`.
-* **libpcap**: PCAP Support (Linux/macOS)
+* **vcpkg**: A C++ package manager to automatically download and build dependencies.
 
-Optional:
-
-* **getopt\_long**: For CLI parsing (provided by libc on Linux/macOS). Windows may need `getopt` replacement.
+Dependencies managed automatically by `vcpkg`:
+* **PcapPlusPlus**
+* **OpenSSL**
+* **OpenCV**
+* **libpcap** (Linux/macOS) / `pthread`
 
 ## Building from source
 
+We use `vcpkg` to manage all C++ dependencies for heiFIP smoothly. If you don't have `vcpkg` installed, follow their [official instructions](https://github.com/microsoft/vcpkg#quick-start-windows-linux-macos).
+
+Ensure the `VCPKG_ROOT` environment variable is set to your `vcpkg` installation path (e.g., `export VCPKG_ROOT=~/vcpkg`).
 
 ```bash
 # Clone this repo
-git clone https://github.com/yourusername/heiFIPCpp.git
+git clone https://github.com/stefanDeveloper/heiFIP.git
 cd heiFIP/heiFIP/
 
-# Create build directory
-mkdir build && cd build
+# Set up vcpkg
+git clone https://github.com/microsoft/vcpkg.git
+./vcpkg/bootstrap-vcpkg.sh
+export VCPKG_ROOT=$(pwd)/vcpkg
 
-cmake ..
+# Create build directory and run CMake using the vcpkg toolchain
+# The toolchain will automatically read vcpkg.json and install dependencies!
+cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
 
-# We highly recommend that locating necessary dependencies is done manually since espically 
-# Pcap Plus Plus is often not installed in standard locations. While we do use scripts to automatically detect 
-# the necessary dependencies if those scripts fail you can specify the paths to the include directories of the header 
-# files aswell as the paths to libaries manually like so. Also do not forget to specify all three of Pcap Plus Plus's
-# libaries libCommon++, libPacket++, libPcap++. For OpenCV doing this manually while possible, due to number of links 
-# necessary, is very difficult. Since OpenCV is configured for Cmake anyway this is unnecessary anyway. When using macOS
-# you need to be very careful that the linked libraries are not Intel (x86_64) bottles, since if this happens the code
-# will still be compiled as ARM64 but dynamically linking against x86_64 .dylib. This forces macOS to convert 
-# back to ARM64 at runtime using Rosetta 2 which encures significant overhead. So if possible use a Linux distribution
+# Compile the project
+cmake --build build -j$(nproc)
 
-cmake .. \
-  -DCMAKE_BUILD_TYPE=Release \
-  -DUSE_MANUAL_PCAPPLUSPLUS=ON \
-  -DPcapPlusPlus_INCLUDE_DIRS="/opt/homebrew/Cellar/pcapplusplus/25.05/include" \
-  -DPcapPlusPlus_LIBRARIES="/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libCommon++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPacket++.a\;/opt/homebrew/Cellar/pcapplusplus/25.05/lib/libPcap++.a" \
-  -DUSE_MANUAL_OPENSSL=ON \
-  -DOPENSSL_INCLUDE_DIR="/opt/homebrew/opt/openssl@3/include" \
-  -DOPENSSL_CRYPTO_LIBRARY="/opt/homebrew/opt/openssl@3/lib/libcrypto.a"
-
-# Compile
-make -j$(nproc)
-
-# or
-cmake --build build
-
-# The executable 'heiFIPCpp' will be produced in build/
+# The executables 'heiFIP' and 'main' will be produced in build/
 ```
 
 
@@ -210,7 +193,7 @@ The following people contributed to heiFIP:
 
 - [Stefan Machmeier](https://github.com/stefanDeveloper): Creator
 - [Manuel Trageser](https://github.com/maxi99manuel99): Header extraction and customization.
-- [Henri Rebitzky](https://github.com/HenriRebitzky): Coversion from python to c++
+- [Henri Rebitzky](https://github.com/HenriRebitzky): Conversion from Python to C++
 
 ## License
 
