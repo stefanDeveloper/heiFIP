@@ -12,52 +12,11 @@ endif()
 set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
 set(CMAKE_C_FLAGS_RELEASE   "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
 
-# === 3. Manual override support ===
+# === 3. Find dependencies ===
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
-# --- OpenSSL ---
-option(USE_MANUAL_OPENSSL "Use manual OpenSSL paths" OFF)
-if(USE_MANUAL_OPENSSL)
-    if(NOT DEFINED OPENSSL_INCLUDE_DIR OR NOT DEFINED OPENSSL_CRYPTO_LIBRARY)
-        message(FATAL_ERROR "Manual OpenSSL mode requires OPENSSL_INCLUDE_DIR and OPENSSL_CRYPTO_LIBRARY")
-    endif()
-    set(OpenSSL_INCLUDE_DIRS "${OPENSSL_INCLUDE_DIR}")
-    set(OpenSSL_LIBRARIES "${OPENSSL_CRYPTO_LIBRARY}")
-    if(DEFINED OPENSSL_SSL_LIBRARY)
-        list(APPEND OpenSSL_LIBRARIES "${OPENSSL_SSL_LIBRARY}")
-    endif()
-else()
-    find_package(OpenSSL REQUIRED)
-    set(OpenSSL_INCLUDE_DIRS "${OPENSSL_INCLUDE_DIR}")
-    set(OpenSSL_LIBRARIES "${OPENSSL_CRYPTO_LIBRARY}")
-endif()
-
-# --- OpenCV ---
-option(USE_MANUAL_OPENCV "Use manual OpenCV paths" OFF)
-if(USE_MANUAL_OPENCV)
-    if(NOT DEFINED OpenCV_INCLUDE_DIR OR NOT DEFINED OpenCV_LIBRARIES)
-        message(FATAL_ERROR "Manual OpenCV mode requires OpenCV_INCLUDE_DIR and OpenCV_LIBRARIES")
-    endif()
-    set(OpenCV_INCLUDE_DIRS "${OpenCV_INCLUDE_DIR}")
-    set(OpenCV_LIBS "${OpenCV_LIBRARIES}")
-else()
-    find_package(OpenCV REQUIRED)
-    set(OpenCV_INCLUDE_DIRS "${OpenCV_INCLUDE_DIRS}")
-    set(OpenCV_LIBS "${OpenCV_LIBRARIES}")
-endif()
-
-# --- PcapPlusPlus ---
-option(USE_MANUAL_PCAPPLUSPLUS "Use manual PcapPlusPlus paths" OFF)
-if(USE_MANUAL_PCAPPLUSPLUS)
-    if(NOT DEFINED PcapPlusPlus_INCLUDE_DIRS OR NOT DEFINED PcapPlusPlus_LIBRARIES)
-        message(FATAL_ERROR "Manual PcapPlusPlus mode requires PcapPlusPlus_INCLUDE_DIRS and PcapPlusPlus_LIBRARIES")
-    endif()
-    # Append required external dependencies manually
-    list(APPEND PcapPlusPlus_LIBRARIES pcap pthread)
-else()
-    find_package(PcapPlusPlus REQUIRED)
-endif()
+find_package(OpenSSL REQUIRED)
+find_package(OpenCV REQUIRED)
+find_package(PcapPlusPlus CONFIG REQUIRED)
 
 # === 4. User project headers ===
 include_directories(
@@ -72,16 +31,14 @@ add_executable(heiFIP cli.cpp)
 add_executable(main   main.cpp)
 # main2.cpp removed
 
-# === 6. Apply includes and libraries ===
+# === 6. Apply libraries ===
 foreach(_target IN ITEMS heiFIP main)
-    target_include_directories(${_target} PUBLIC
-        ${PcapPlusPlus_INCLUDE_DIRS}
-        ${OpenSSL_INCLUDE_DIRS}
-        ${OpenCV_INCLUDE_DIRS}
-    )
     target_link_libraries(${_target} PUBLIC
-        ${OpenSSL_LIBRARIES}
-        ${PcapPlusPlus_LIBRARIES}
+        OpenSSL::Crypto
+        OpenSSL::SSL
+        PcapPlusPlus::Common++
+        PcapPlusPlus::Packet++
+        PcapPlusPlus::Pcap++
         ${OpenCV_LIBS}
     )
 endforeach()

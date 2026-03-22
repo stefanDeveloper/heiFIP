@@ -1,0 +1,13 @@
+{
+  "name": "heifip",
+  "version-string": "1.0",
+  "dependencies": [
+    {
+      "name": "opencv4",
+      "default-features": false,
+      "features": ["jpeg", "png"]
+    },
+    "openssl",
+    "pcapplusplus"
+  ]
+}

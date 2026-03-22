@@ -4,7 +4,6 @@ __pycache__/
 *$py.class
 
 # Ignore scan results
-*.json
 *.xml
 
 .vscode
