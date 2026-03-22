@@ -168,6 +168,11 @@ public:
                 size_t maxImageDim,
                 bool removeDuplicates) 
     {
+        if (image.get_matrix().empty() || image.get_matrix()[0].empty()) {
+            std::cout << "[!] Image not created: empty matrix.\n";
+            return false;
+        }
+
         size_t height = image.get_matrix().size();
         size_t width  = image.get_matrix()[0].size();
 

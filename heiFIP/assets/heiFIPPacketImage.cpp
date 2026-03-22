@@ -222,8 +222,8 @@ public:
             }
         }
 
-        // 3) If auto_dim is requested, compute dim = ceil(sqrt(length))
-        if (auto_dim) {
+        // 3) If auto_dim is requested or dim is invalid, compute dim = ceil(sqrt(length))
+        if (auto_dim || dim <= 0) {
             dim = static_cast<int>(std::ceil(std::sqrt(static_cast<double>(length))));
         }
 
