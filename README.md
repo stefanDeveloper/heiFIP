@@ -83,10 +83,10 @@ The idea to create heiFIP came from working with Deep Learning approaches to cla
 
 | Image Type | Description | Example |
 |------------|-------------|---------|
-| Packet | Converts a single packet into a square image. Size depends on the total length | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/packet.png?raw=true) |
-| Flow | Converts a flow packet into a square image | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/flow-tiled.png?raw=true) |
-| Markov Transition Matrix Packet | Converts a packet into a Markov Transition Matrix. Size is fixed to 16x16. | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/markov-packet.png?raw=true) |
-| Markov Transition Matrix Flow | Converts a flow into a Markov Transition Matrix. It squares the image based on the number of packets | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/markov-flow.png?raw=true) |
+| Packet | Converts a single packet into a square image. Size depends on the total length | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/packet.png?raw=true) |
+| Flow | Converts a flow packet into a square image | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/flow-tiled.png?raw=true) |
+| Markov Transition Matrix Packet | Converts a packet into a Markov Transition Matrix. Size is fixed to 16x16. | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-packet.png?raw=true) |
+| Markov Transition Matrix Flow | Converts a flow into a Markov Transition Matrix. It squares the image based on the number of packets | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-flow.png?raw=true) |
 
 ## Requirements
 
@@ -131,7 +131,7 @@ cmake --build build -j$(nproc)
 
 After installation the command line interface can be used to extract images from pcap files witht he following command
 ```bash
-./heiFIPCpp \
+./heiFIP \
   --name HelloHeiFIP
   --input /path/to/capture.pcap \
   --output /path/to/outdir \
