@@ -89,8 +89,9 @@ class PacketProcessor {
         pcpp::RawPacket rawPacket;
         std::unique_ptr<pcpp::RawPacket> rawPacketPt;
         size_t count = 0;
+        size_t limit = (maxCount == 0) ? 64 : maxCount;
 
-        while ((maxCount == 0 || count < maxCount) && reader.getNextPacket(rawPacket)) {
+        while (count < limit && reader.getNextPacket(rawPacket)) {
             rawPacketPt = std::make_unique<pcpp::RawPacket>(rawPacket);
             std::unique_ptr<FIPPacket> fippkt = preprocess(rawPacketPt, type);
 

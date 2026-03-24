@@ -494,7 +494,7 @@ public:
     }
 
     /**
-     * @brief Write the first 2D image in a UInt8Matrix vector to disk as a PNG file.
+     * @brief Write 2D image in a UInt8Matrix vector to disk as a PNG file.
      *
      * @param img          A vector of 2D matrices. Only `img[0]` is used (grayscale).
      * @param output_path  The desired file path (without extension). A ".png" is appended.
@@ -514,28 +514,39 @@ public:
             return;
         }
 
-        // Work with the first image slice (assuming grayscale)
-        const auto& grayscale_image = img[0];
-        int height = static_cast<int>(grayscale_image.size());
-        int width  = static_cast<int>(grayscale_image[0].size());
-
-        // Create an OpenCV Mat of the correct size and type (8‐bit unsigned, single channel)
-        cv::Mat mat(height, width, CV_8UC1);
-
-        // Copy pixel values row by row
-        for (int i = 0; i < height; ++i) {
-            uint8_t* row_ptr = mat.ptr<uint8_t>(i);
-            for (int j = 0; j < width; ++j) {
-                row_ptr[j] = grayscale_image[i][j];
-            }
-        }
-
-        // Append .png extension and ensure parent directory exists
-        std::filesystem::path outp(output_path + ".png");
+        // Ensure parent directory exists
+        std::filesystem::path outp(output_path);
         std::filesystem::create_directories(outp.parent_path());
 
-        // Write the PNG file to disk
-        cv::imwrite(outp.string(), mat);
+        // Save each image slice (assuming grayscale)
+        for (size_t k = 0; k < img.size(); ++k) {
+            const auto& grayscale_image = img[k];
+            if (grayscale_image.empty() || grayscale_image[0].empty()) continue;
+
+            int height = static_cast<int>(grayscale_image.size());
+            int width  = static_cast<int>(grayscale_image[0].size());
+
+            // Create an OpenCV Mat of the correct size and type (8-bit unsigned, single channel)
+            cv::Mat mat(height, width, CV_8UC1);
+
+            // Copy pixel values row by row
+            for (int i = 0; i < height; ++i) {
+                uint8_t* row_ptr = mat.ptr<uint8_t>(i);
+                for (int j = 0; j < width; ++j) {
+                    row_ptr[j] = grayscale_image[i][j];
+                }
+            }
+
+            std::string final_path;
+            if (img.size() == 1) {
+                final_path = output_path + ".png";
+            } else {
+                final_path = output_path + "_" + std::to_string(k) + ".png";
+            }
+
+            // Write the PNG file to disk
+            cv::imwrite(final_path, mat);
+        }
     }
 
 private:
