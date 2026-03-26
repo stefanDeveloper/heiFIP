@@ -7,12 +7,12 @@
 #include <Packet.h>
 #include <memory>
 
-#include "packet.cpp"
-#include "dns.cpp"
-#include "http.cpp"
-#include "ip.cpp"
-#include "ssh.cpp"
-#include "transport.cpp"
+#include "packet.hpp"
+#include "dns.hpp"
+#include "http.hpp"
+#include "ip.hpp"
+#include "ssh.hpp"
+#include "transport.hpp"
 
 enum class SupportedHeaderType {
     IP,

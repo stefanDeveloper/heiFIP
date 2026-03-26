@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <map>
 
-#include "transport.cpp"
+#include "transport.hpp"
 #include "PcapPlusPlusVersion.h"
 #include "HttpLayer.h"
 

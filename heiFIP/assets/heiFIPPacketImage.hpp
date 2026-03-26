@@ -58,11 +58,8 @@ public:
      *     callers need only supply the byte array; the header’s caplen is fetched internally.
      */
     heiFIPPacketImage(std::vector<uint8_t> data)
-        : _data(std::move(data))
-    {
-        PcapPacketHeader packetHeader;
-        _cap_length = packetHeader.caplen;
-    }
+        : _data(std::move(data)), _cap_length(static_cast<uint32_t>(_data.size()))
+    {}
 
     /**
      * @brief Constructor: initialize with raw byte data and immediately build a tiled image matrix.
@@ -86,15 +83,12 @@ public:
      *     so this constructor does that in one step, storing both the matrix and raw-binary copy.
      */
     heiFIPPacketImage(std::vector<uint8_t> data, int dim, int fill, bool auto_dim)
-        : _data(std::move(data))
+        : _data(std::move(data)), _cap_length(static_cast<uint32_t>(_data.size()))
     {
-        PcapPacketHeader packetHeader;
-        _cap_length = packetHeader.caplen;
-
         // Build the tiled matrix and binaries representation in one call.
-        auto result = heiFIPPacketImage::get_matrix_tiled(fill, dim, auto_dim);
-        heiFIPPacketImage::matrix   = std::move(result.first);
-        heiFIPPacketImage::binaries = std::move(result.second);
+        auto result = get_matrix_tiled(fill, dim, auto_dim);
+        matrix   = std::move(result.first);
+        binaries = std::move(result.second);
     }
 
     ~heiFIPPacketImage() = default;
@@ -128,12 +122,7 @@ public:
      *   - Ensures callers cannot modify the original _data member.
      */
     std::vector<uint8_t> getHexData() const {
-        std::vector<uint8_t> hexData;
-        hexData.reserve(_data.size());
-        for (size_t i = 0; i < _data.size(); ++i) {
-            hexData.push_back(_data[i]);
-        }
-        return hexData;
+        return _data;
     }
 
     /**
@@ -152,17 +141,11 @@ public:
      *   - Converting each byte into two 4-bit values allows constructing those images.
      */
     std::vector<uint8_t> bit_array() const {
-        // 1) Copy bytes so as not to modify _data
-        std::vector<uint8_t> data;
-        data.reserve(_data.size());
-        for (uint8_t byte : _data) {
-            data.push_back(byte);
-        }
 
-        // 2) Build a concatenated string of bits, 8 bits per byte
+        // Build a concatenated string of bits, 8 bits per byte
         std::string bytes_as_bits;
-        bytes_as_bits.reserve(data.size() * 8);
-        for (unsigned char byte : data) {
+        bytes_as_bits.reserve(_data.size() * 8);
+        for (unsigned char byte : _data) {
             bytes_as_bits += std::bitset<8>(byte).to_string();
         }
 

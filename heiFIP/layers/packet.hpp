@@ -213,11 +213,11 @@ public:
     }
 
     /**
-     * @brief Access the underlying RawPacket pointer for additional, low-level operations.
-     * @return pcpp::RawPacket*  Raw pointer to the owned RawPacket.
+     * @brief Access the underlying RawPacket pointer.
+     * @return pcpp::RawPacket*  Pointer to the RawPacket, correctly reflected if modified by pcpp::Packet.
      */
     pcpp::RawPacket* getRawPacket() {
-        return rawPtr.get();
+        return Packet.getRawPacket();
     }
 
     /**
@@ -225,7 +225,15 @@ public:
      * @return const pcpp::RawPacket*  Const raw pointer to the owned RawPacket.
      */
     const pcpp::RawPacket* getRawPacket() const {
-        return rawPtr.get();
+        return Packet.getRawPacket();
+    }
+
+    /**
+     * @brief Access the internally parsed pcpp::Packet object.
+     * @return const pcpp::Packet&  Reference to the internal Packet member.
+     */
+    const pcpp::Packet& getPacket() const {
+        return Packet;
     }
 };
 
@@ -271,7 +279,7 @@ public:
  *
  * @return std::string  A randomly generated 6-byte MAC address.
  */
-std::string generate_random_mac() {
+static inline std::string generate_random_mac() {
     std::stringstream mac;
     mac << std::hex << std::uppercase << std::setw(2) << std::setfill('0') << (rand() % 256);
     for (int i = 0; i < 5; ++i) {

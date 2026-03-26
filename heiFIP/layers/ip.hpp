@@ -15,8 +15,8 @@
 #include <iomanip>
 #include <openssl/sha.h>   // For SHA-256 hashing of header fields
 
-#include "packet.cpp"
-#include "header.cpp"
+#include "packet.hpp"
+#include "header.hpp"
 
 /**
  * @class IPPacket

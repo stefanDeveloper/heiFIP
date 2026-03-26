@@ -10,9 +10,9 @@
 #include <iomanip>
 #include <openssl/sha.h>  // For SHA-256 hashing
 
-#include "header.cpp"
-#include "ip.cpp"
-#include "packet.cpp"
+#include "header.hpp"
+#include "ip.hpp"
+#include "packet.hpp"
 
 /**
  * @class TransportPacket
@@ -144,6 +144,25 @@ public:
                     // Recompute checksums/lengths for remaining headers
                     Packet.computeCalculateFields();
                 }
+            }
+        }
+
+        // Populate address_mapping with ports
+        if (layerMap["TCP"]) {
+            auto* tcp = Packet.getLayerOfType<pcpp::TcpLayer>();
+            if (tcp) {
+                std::string srcP = std::to_string(ntohs(tcp->getTcpHeader()->portSrc));
+                std::string dstP = std::to_string(ntohs(tcp->getTcpHeader()->portDst));
+                address_mapping[srcP] = srcP;
+                address_mapping[dstP] = dstP;
+            }
+        } else if (layerMap["UDP"]) {
+            auto* udp = Packet.getLayerOfType<pcpp::UdpLayer>();
+            if (udp) {
+                std::string srcP = std::to_string(ntohs(udp->getUdpHeader()->portSrc));
+                std::string dstP = std::to_string(ntohs(udp->getUdpHeader()->portDst));
+                address_mapping[srcP] = srcP;
+                address_mapping[dstP] = dstP;
             }
         }
     }

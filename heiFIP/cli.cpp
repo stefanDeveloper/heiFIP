@@ -3,8 +3,8 @@
 #include <string>
 #include <getopt.h>
 
-#include "extractor.cpp"
-#include "runner.cpp"
+#include "extractor.hpp"
+#include "runner.hpp"
 
 /// @brief Prints usage/help information for the CLI tool.
 void print_usage(const char* progName) {

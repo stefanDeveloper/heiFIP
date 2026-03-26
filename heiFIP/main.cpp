@@ -1,4 +1,4 @@
-#include "runner.cpp"
+#include "runner.hpp"
 #include <filesystem>
 #include <vector>
 
@@ -40,8 +40,8 @@ std::string filenameWithoutExtension(const std::string& fullPath) {
 /// Demonstrates loading `.pcap` files and generating images using a Runner object.
 int main() {
     // Paths to input `.pcap` directory and output image directory
-    std::string output_dir = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFPGit/heiFIP/build/";
-    std::string input_dir = "/Users/henrirebitzky/Documents/BachelorDerInformatikAnDerUniversitätHeidelberg/IFPGit/tests/pcaps/http";
+    std::string output_dir = "./";
+    std::string input_dir = "../tests/pcaps/http";
 
     // Retrieve all `.pcap` files from the input directory
     std::vector<std::string> files = listPcapFilePathsInDir(input_dir);

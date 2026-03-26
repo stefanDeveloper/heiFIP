@@ -7,12 +7,12 @@
 #include <iostream>
 #include <concepts>
 
-#include "init.cpp"
-#include "flow.cpp"
-#include "flow_tiled_auto.cpp"
-#include "flow_tiled_fixed.cpp"
-#include "markov_chain.cpp"
-#include "heiFIPPacketImage.cpp"
+#include "init.hpp"
+#include "flow.hpp"
+#include "flow_tiled_auto.hpp"
+#include "flow_tiled_fixed.hpp"
+#include "markov_chain.hpp"
+#include "heiFIPPacketImage.hpp"
 
 
 /**
@@ -263,6 +263,21 @@ public:
             remove_duplicates,
             args
         );
+    }
+    
+    /**
+     * @brief Public access to packet reading functionality.
+     */
+    std::vector<std::unique_ptr<FIPPacket>> getPackets(
+        const std::string& input_file,
+        PacketProcessorType preprocessing_type = PacketProcessorType::NONE,
+        bool remove_duplicates = false,
+        size_t maxCount = 64
+    ) {
+        if (!std::filesystem::exists(input_file)) {
+            return {};
+        }
+        return processor.readPacketsFile(input_file, preprocessing_type, remove_duplicates, maxCount);
     }
 
     /**

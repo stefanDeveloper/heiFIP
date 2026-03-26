@@ -4,7 +4,7 @@
 #include <string>
 #include <DnsLayer.h>
 
-#include "transport.cpp"
+#include "transport.hpp"
 
 /**
  * @class DNSPacket
@@ -62,6 +62,9 @@ public:
      *        f. Call Packet.computeCalculateFields() to recalculate lengths and checksums upstream of the new DNS header.
      */
     void header_preprocessing() override {
+        // First, perform any transport-layer and IP/Ethernet substitutions
+        TransportPacket::header_preprocessing();
+
         // 1) Find the existing DnsLayer for preprocessing
         pcpp::DnsLayer* oldDNSForMessageProcessing = Packet.getLayerOfType<pcpp::DnsLayer>();
         if (!oldDNSForMessageProcessing) {
