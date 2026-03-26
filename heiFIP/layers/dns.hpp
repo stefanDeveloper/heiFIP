@@ -5,6 +5,8 @@
 #include <DnsLayer.h>
 
 #include "transport.hpp"
+#include "logging.hpp"
+#include "header.hpp"
 
 /**
  * @class DNSPacket
@@ -87,8 +89,9 @@ public:
         }
 
         // 3) After processing individual records, replace the DNS header itself
-        pcpp::DnsLayer* oldDNS = Packet.getLayerOfType<pcpp::DnsLayer>();
-        pcpp::dnshdr* dnsHeader = oldDNS->getDnsHeader();
+        LDEBUG("DNSPacket::header_preprocessing() - Substituting DNS layer with CustomDNSLayer");
+        pcpp::DnsLayer* oldDns = Packet.getLayerOfType<pcpp::DnsLayer>();
+        pcpp::dnshdr* dnsHeader = oldDns->getDnsHeader();
 
         // Build a new CustomDNS header using fields from the old DNS header
         std::unique_ptr<CustomDNS> customDns = std::make_unique<CustomDNS>();
@@ -102,18 +105,18 @@ public:
         customDns->ad      = dnsHeader->authenticData;
         customDns->cd      = dnsHeader->checkingDisabled;
         customDns->rcode   = static_cast<uint8_t>(dnsHeader->responseCode);
-        customDns->qdCount = oldDNS->getQueryCount();
-        customDns->anCount = oldDNS->getAnswerCount();
-        customDns->nsCount = oldDNS->getAuthorityCount();
-        customDns->arCount = oldDNS->getAdditionalRecordCount();
+        customDns->qdCount = oldDns->getQueryCount();
+        customDns->anCount = oldDns->getAnswerCount();
+        customDns->nsCount = oldDns->getAuthorityCount();
+        customDns->arCount = oldDns->getAdditionalRecordCount();
 
         // Insert the new CustomDNS layer immediately before the old DNS layer
-        pcpp::Layer* prev = oldDNS->getPrevLayer();
+        pcpp::Layer* prev = oldDns->getPrevLayer();
         Packet.insertLayer(prev, customDns.release());
 
         // Detach and delete the old DNS layer
-        Packet.detachLayer(oldDNS);
-        delete oldDNS;
+        Packet.detachLayer(oldDns);
+        delete oldDns;
 
         // Recompute checksums and lengths for all layers upstream of the new DNS header
         Packet.computeCalculateFields();

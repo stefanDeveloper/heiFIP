@@ -13,6 +13,7 @@
 #include "flow_tiled_fixed.hpp"
 #include "markov_chain.hpp"
 #include "heiFIPPacketImage.hpp"
+#include "logging.hpp"
 
 
 /**
@@ -169,7 +170,7 @@ public:
                 bool removeDuplicates) 
     {
         if (image.get_matrix().empty() || image.get_matrix()[0].empty()) {
-            std::cout << "[!] Image not created: empty matrix.\n";
+            LWARN("Image not created: empty matrix.");
             return false;
         }
 
@@ -178,22 +179,20 @@ public:
 
         // Enforce minimum dimension constraint:
         if (height < minImageDim || width < minImageDim) {
-            std::cout << "[!] Image not created: dimensions smaller than minimum ("
-                      << minImageDim << ").\n";
+            LWARN("Image not created: dimensions smaller than minimum (" << minImageDim << ").");
             return false;
         }
 
         // Enforce maximum dimension constraint (if nonzero):
         if (maxImageDim != 0 && (height > maxImageDim || width > maxImageDim)) {
-            std::cout << "[!] Image not created: dimensions exceed maximum ("
-                      << maxImageDim << ").\n";
+            LWARN("Image not created: dimensions exceed maximum (" << maxImageDim << ").");
             return false;
         }
 
         if (removeDuplicates) {
             std::vector<std::vector<uint8_t>> matrix = image.get_matrix();
             if (imagesCreatedSet.count(matrix)) {
-                std::cout << "[!] Image not created: duplicate detected.\n";
+                LDEBUG("Image not created: duplicate detected.");
                 return false;
             }
             imagesCreatedSet.insert({matrix, true});
@@ -237,8 +236,11 @@ public:
     ) {
         // Verify existence of the pcap file before proceeding:
         if (!std::filesystem::exists(input_file)) {
+            LERROR("Input file does not exist: " << input_file);
             throw std::runtime_error("Input file does not exist: " + input_file);
         }
+
+        LINFO("Processing PCAP file: " << input_file);
 
         // Read and preprocess packets from the file:
         //   - If remove_duplicates is true, duplicates are dropped here.
@@ -250,6 +252,8 @@ public:
                 remove_duplicates,
                 max_packets_per_flow
             );
+
+        LINFO("Read " << processed_packets.size() << " packets from file.");
 
         // Delegate to createMatrix, passing along preprocessing/filtering criteria
         return createMatrix(
@@ -356,6 +360,7 @@ public:
 
         // If we have a maximum packet‐per‐flow limit, cut the packet list down now:
         if (max_packets_per_flow && packets.size() > max_packets_per_flow) {
+            LDEBUG("Truncating packet list from " << packets.size() << " to " << max_packets_per_flow);
             packets.resize(max_packets_per_flow);
         }
 
@@ -525,7 +530,7 @@ public:
     void save_image(const UInt8Matrix& img, const std::string& output_path) {
         // Quick sanity check: must have at least one image, and that image must be non-empty
         if (img.empty() || img[0].empty() || img[0][0].empty()) {
-            std::cerr << "[!] Empty image, cannot save: " << output_path << "\n";
+            LWARN("Empty image, cannot save: " << output_path);
             return;
         }
 
@@ -561,6 +566,7 @@ public:
 
             // Write the PNG file to disk
             cv::imwrite(final_path, mat);
+            LINFO("Image saved to: " << final_path);
         }
     }
 

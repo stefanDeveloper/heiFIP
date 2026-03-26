@@ -9,6 +9,7 @@
 
 #include "packet.hpp"
 #include "dns.hpp"
+#include "logging.hpp"
 #include "http.hpp"
 #include "ip.hpp"
 #include "ssh.hpp"
@@ -83,6 +84,7 @@ class PacketProcessor {
         pcpp::PcapFileReaderDevice reader(filename);
         
         if (!reader.open()) { 
+            LERROR("Failed to open PCAP file for reading: " << filename);
             return result;
         }
 
@@ -99,12 +101,10 @@ class PacketProcessor {
                 if (res.second) { // was inserted, new
                     result.push_back(std::move(fippkt));
                 } else {
-                    // This case occurs if two packets are the same (have the same hash value)
-                    // which results in the packet not being used if remove_duplicates is set
                     if (!removeDuplicates) {
                         result.push_back(std::move(fippkt));
                     } else {
-                        std::cout << "[-] Warning: Duplicate packet with hash value " << fippkt->getHash() << " removed" << std::endl;
+                        LDEBUG("Duplicate packet with hash " << fippkt->getHash() << " removed");
                     }
                 }
             } else if (fippkt) {
@@ -127,14 +127,12 @@ class PacketProcessor {
             if (!fippkt->getHash().empty()) {
                 auto res = hashDict.insert(fippkt->getHash());
                 if (res.second) {
-                result.push_back(std::move(fippkt));
+                    result.push_back(std::move(fippkt));
                 } else {
-                    // This case occurs if two packets are the same (have the same hash value)
-                    // which results in the packet not being used if remove_duplicates is set
                     if (!removeDuplicates) {
                         result.push_back(std::move(fippkt));
                     } else {
-                        std::cout << "[-] Warning: Duplicate packet with hash value " << fippkt->getHash() << " removed" << std::endl;
+                        LDEBUG("Duplicate packet with hash " << fippkt->getHash() << " removed");
                     }
                 }
             } else {
@@ -143,8 +141,6 @@ class PacketProcessor {
         }
         return result;
     }
-    
-        // TODO: Add methods to process packets by type
     
     private:
         std::string fileExtension;
@@ -156,34 +152,38 @@ class PacketProcessor {
      * Optionally invoke header preprocessing.
      */
     std::unique_ptr<FIPPacket> preprocess(std::unique_ptr<pcpp::RawPacket>& packet, PacketProcessorType type) {
-        std::unique_ptr<FIPPacket> fippacket = std::make_unique<UnknownPacket>(std::make_unique<pcpp::RawPacket>(*packet));
-        std::unordered_map<std::string, std::string> address_mapping = fippacket->getAdressMapping();
-        std::unordered_map<std::string, bool> layer_map = fippacket->getLayerMap();
-        // HTTP handling
-        if (layer_map.count("HTTP")) {
-            fippacket = std::make_unique<HTTPPacket>(std::move(packet), address_mapping, layer_map);
-        }
-        else if (layer_map.count("HTTPRequest")) {
+        // Build a temporary wrapper to detect layers
+        std::unique_ptr<FIPPacket> detector = std::make_unique<UnknownPacket>(std::make_unique<pcpp::RawPacket>(*packet));
+        auto address_mapping = detector->getAdressMapping();
+        auto layer_map = detector->getLayerMap();
+
+        std::unique_ptr<FIPPacket> fippacket;
+
+        // Classification Priority: HTTP -> DNS -> SSH -> Transport -> IP -> Ether -> Unknown
+        if (layer_map.count("HTTPRequest")) {
             fippacket = std::make_unique<HTTPRequestPacket>(std::move(packet), address_mapping, layer_map);
-        }
-        else if (layer_map.count("HTTPResponse")) {
+            LDEBUG("Classified packet as HTTPRequest");
+        } else if (layer_map.count("HTTPResponse")) {
             fippacket = std::make_unique<HTTPResponsePacket>(std::move(packet), address_mapping, layer_map);
-        }
-        // DNS handling
-        else if (layer_map.count("DNS")) {
+            LDEBUG("Classified packet as HTTPResponse");
+        } else if (layer_map.count("HTTP")) {
+            fippacket = std::make_unique<HTTPPacket>(std::move(packet), address_mapping, layer_map);
+            LDEBUG("Classified packet as HTTP");
+        } else if (layer_map.count("DNS")) {
             fippacket = std::make_unique<DNSPacket>(std::move(packet), address_mapping, layer_map);
-        }
-        // Transport layer (TCP/UDP)
-        else if (layer_map.count("TCP") || layer_map.count("UDP")) {
+            LDEBUG("Classified packet as DNS");
+        } else if (layer_map.count("TCP") || layer_map.count("UDP")) {
             fippacket = std::make_unique<TransportPacket>(std::move(packet), address_mapping, layer_map);
-        }
-        // Network layer (IPv4/IPv6)
-        else if (layer_map.count("IPv4") || layer_map.count("IPv6")) {
+            LDEBUG("Classified packet as Transport (TCP/UDP)");
+        } else if (layer_map.count("IPv4") || layer_map.count("IPv6")) {
             fippacket = std::make_unique<IPPacket>(std::move(packet), address_mapping, layer_map);
-        }
-        // Data link layer (Ethernet)
-        else if (layer_map.count("Ethernet")) {
+            LDEBUG("Classified packet as IP");
+        } else if (layer_map.count("Ethernet")) {
             fippacket = std::make_unique<EtherPacket>(std::move(packet), address_mapping, layer_map);
+            LDEBUG("Classified packet as Ethernet");
+        } else {
+            fippacket = std::make_unique<UnknownPacket>(std::move(packet), address_mapping, layer_map);
+            LDEBUG("Classified packet as Unknown/Generic");
         }
 
         // Header preprocessing if requested

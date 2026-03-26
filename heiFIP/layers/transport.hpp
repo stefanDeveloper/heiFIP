@@ -12,6 +12,7 @@
 
 #include "header.hpp"
 #include "ip.hpp"
+#include "logging.hpp"
 #include "packet.hpp"
 
 /**
@@ -189,6 +190,7 @@ public:
     void header_preprocessing() override {
         // Replace TCP layer if present
         if (layer_map["TCP"]) {
+            LDEBUG("TransportPacket::header_preprocessing() - Substituting TCP layer");
             pcpp::TcpLayer* oldTcp = Packet.getLayerOfType<pcpp::TcpLayer>();
             if (!oldTcp) {
                 // No TCP layer found; skip
@@ -212,6 +214,7 @@ public:
 
         // Replace UDP layer if present
         if (layer_map["UDP"]) {
+            LDEBUG("TransportPacket::header_preprocessing() - Substituting UDP layer");
             pcpp::UdpLayer* oldUdp = Packet.getLayerOfType<pcpp::UdpLayer>();
             if (!oldUdp) {
                 // No UDP layer found; skip

@@ -5,6 +5,7 @@
 #include "PcapHeaders.h"   // Provides PcapPacketHeader for captured length
 #include <vector>
 #include <iomanip>
+#include "logging.hpp"
 #include <bitset>
 #include <memory>
 #include <sstream>
@@ -101,15 +102,16 @@ public:
      *   Then each byte printed in “HH ” (two-digit hex, space-separated).
      */
     void printHexData() const {
-        std::cout << std::dec
-                  << "Packet has size"
-                  << " (Size: " << get_cap_length() << " bytes):\n";
+        std::stringstream ss;
+        ss << std::dec
+           << "Packet has size"
+           << " (Size: " << get_cap_length() << " bytes):\n";
         for (size_t i = 0; i < _data.size(); ++i) {
-            std::cout << std::hex
-                      << std::setw(2) << std::setfill('0')
-                      << static_cast<int>(_data[i]) << " ";
+            ss << std::hex
+               << std::setw(2) << std::setfill('0')
+               << static_cast<int>(_data[i]) << " ";
         }
-        std::cout << std::endl;
+        LDEBUG(ss.str());
     }
 
     /**

@@ -16,6 +16,7 @@
 #include <openssl/sha.h>   // For SHA-256 hashing of header fields
 
 #include "packet.hpp"
+#include "logging.hpp"
 #include "header.hpp"
 
 /**
@@ -129,6 +130,7 @@ public:
     void header_preprocessing() override {
         // IPv4 replacement logic
         if (layer_map.count("IPv4")) {
+            LDEBUG("IPPacket::header_preprocessing() - Substituting IPv4 layer");
             pcpp::IPv4Layer* oldIp = Packet.getLayerOfType<pcpp::IPv4Layer>();
             if (!oldIp) return;  // No IPv4 layer found—nothing to replace
 
@@ -150,6 +152,7 @@ public:
 
         // IPv6 replacement logic
         if (layer_map.count("IPv6")) {
+            LDEBUG("IPPacket::header_preprocessing() - Substituting IPv6 layer");
             pcpp::IPv6Layer* oldIp = Packet.getLayerOfType<pcpp::IPv6Layer>();
             if (!oldIp) return;  // No IPv6 layer found
 
@@ -323,6 +326,7 @@ private:
             return address_mapping[oldAddr];
         }
         std::string newAddr = isIPv6 ? generateRandomIPv6() : generateRandomIPv4();
+        LDEBUG("Mapping address " << oldAddr << " -> " << newAddr);
         address_mapping[oldAddr] = newAddr;
         return newAddr;
     }
