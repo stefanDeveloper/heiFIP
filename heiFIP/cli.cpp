@@ -11,12 +11,13 @@ void print_usage(const char* progName) {
     std::cout << "Usage: " << progName << " [options]\n"
               << "  -i, --input FILE           input pcap file path\n"
               << "  -o, --output DIR           output directory\n"
-              << "  -t, --threads N            number of threads (default 1)\n"
-              << "  -p, --processor TYPE       preprocessing type: NONE or HEADER\n"
+              << "  -t, --threads N            number of threads (default: 1)\n"
+              << "  -p, --processor TYPE       preprocessing type: NONE or HEADER (default: NONE)\n"
               << "  -m, --mode MODE            image type: FlowImage, FlowImageTiledFixed, FlowImageTiledAuto,\n"
               << "                             MarkovTransitionMatrixFlow, MarkovTransitionMatrixPacket, PacketImage\n"
-              << "  --dim N                    image dimension\n"
-              << "  --fill N                   fill value for missing data\n"
+              << "                             (default: PacketImage)\n"
+              << "  --dim N                    image dimension (default: 16)\n"
+              << "  --fill N                   fill value for missing data (default: 0)\n"
               << "  --cols N                   number of columns (used in some modes)\n"
               << "  --auto-dim                 enable auto-dimension (FlowImageTiledAuto, etc.)\n"
               << "  --append                   append mode for FlowImage\n"
@@ -25,7 +26,7 @@ void print_usage(const char* progName) {
               << "  --min-pkts N               minimum packets per flow\n"
               << "  --max-pkts N               maximum packets per flow\n"
               << "  --remove-dup               remove duplicate packets/flows\n"
-              << "  --name                     name of processed image\n "
+              << "  --name NAME                name of processed image (default: heiFIPGeneratedImage)\n"
               << "  -h, --help                 display this help and exit\n";
 }
 
@@ -39,7 +40,7 @@ int main(int argc, char* argv[]) {
 
     // Optional parameters with defaults
     std::string image_name = "heiFIPGeneratedImage";
-    size_t dim = 0, fill = 0, cols = 0;
+    size_t dim = 16, fill = 0, cols = 0;
     bool auto_dim = false, append = false;
     size_t min_dim = 0, max_dim = 0;
     size_t min_pkts = 0, max_pkts = 0;
