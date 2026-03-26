@@ -43,14 +43,14 @@ jobs:
             git
 
       - name: Configure and Build
+        working-directory: heiFIP
         run: |
-          cd heiFIP/
           cmake -B build -S . \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
           cmake --build build -j$(nproc)
 
       - name: Run Tests
+        working-directory: heiFIP
         run: |
-          cd build
           ctest --output-on-failure
