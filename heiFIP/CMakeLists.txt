@@ -9,14 +9,22 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # === 2. Maximum optimization flags for Release ===
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE   "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
+if(MSVC)
+  set(CMAKE_CXX_FLAGS_RELEASE "/O2 /GL /DNDEBUG")
+  set(CMAKE_C_FLAGS_RELEASE   "/O2 /GL /DNDEBUG")
+else()
+  set(CMAKE_CXX_FLAGS_RELEASE "-O3 -funroll-loops -flto=auto -DNDEBUG")
+  set(CMAKE_C_FLAGS_RELEASE   "-O3 -funroll-loops -flto=auto -DNDEBUG")
+endif()
 
 # === 3. Find dependencies ===
 
 find_package(OpenSSL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PcapPlusPlus CONFIG REQUIRED)
+if(WIN32)
+  find_package(getopt-win32 CONFIG REQUIRED)
+endif()
 
 # === 4. User project headers ===
 include_directories(
@@ -41,14 +49,31 @@ foreach(_target IN ITEMS heiFIP main)
         PcapPlusPlus::Pcap++
         ${OpenCV_LIBS}
     )
+    if(WIN32)
+        target_link_libraries(${_target} PUBLIC getopt-win32::getopt)
+    endif()
 endforeach()
+
+# === 8. Install rules ===
+install(TARGETS heiFIP RUNTIME DESTINATION bin)
+# Optionally install assets if needed
+# install(DIRECTORY assets DESTINATION share/heiFIP)
 
 # === 7. Optimization and LTO in Release builds ===
 foreach(_target IN ITEMS heiFIP main)
-    target_compile_options(${_target} PUBLIC
-        $<$<CONFIG:Release>:-O3 -march=native -funroll-loops -flto=auto -DNDEBUG>
-    )
-    target_link_options(${_target} PUBLIC
-        $<$<CONFIG:Release>:-flto=auto>
-    )
+    if(MSVC)
+        target_compile_options(${_target} PUBLIC
+            $<$<CONFIG:Release>:/O2 /GL /DNDEBUG>
+        )
+        target_link_options(${_target} PUBLIC
+            $<$<CONFIG:Release>:/LTCG>
+        )
+    else()
+        target_compile_options(${_target} PUBLIC
+            $<$<CONFIG:Release>:-O3 -funroll-loops -flto=auto -DNDEBUG>
+        )
+        target_link_options(${_target} PUBLIC
+            $<$<CONFIG:Release>:-flto=auto>
+        )
+    endif()
 endforeach()

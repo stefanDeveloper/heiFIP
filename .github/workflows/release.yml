@@ -1,0 +1,103 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build for ${{ matrix.arch }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            arch: x86_64
+          - os: ubuntu-24.04-arm
+            arch: arm64
+          - os: windows-2022
+            arch: x86_64
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up CMake
+        uses: lukka/get-cmake@v3.29.2
+
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            pkg-config \
+            libpcap-dev \
+            git
+
+      - name: Cache vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/vcpkg
+            heiFIP/build/vcpkg_installed
+          key: ${{ runner.os }}-vcpkg-${{ hashFiles('heiFIP/vcpkg.json') }}
+          restore-keys: |
+            ${{ runner.os }}-vcpkg-
+
+      - name: Configure and Build
+        run: |
+          cd heiFIP/
+          cmake -B build -S . \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_TOOLCHAIN_FILE="$VCPKG_INSTALLATION_ROOT/scripts/buildsystems/vcpkg.cmake"
+          cmake --build build --config Release -j 4
+
+      - name: Install and Package (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          cd heiFIP/
+          cmake --install build --prefix ./install
+          VERSION=$(git describe --tags --always)
+          ARCH=${{ matrix.arch }}
+          tar -czf ../heiFIP-${VERSION}-${ARCH}.tar.gz -C ./install .
+
+      - name: Install and Package (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          cd heiFIP
+          cmake --install build --prefix ./install
+          $VERSION = git describe --tags --always
+          $ARCH = "${{ matrix.arch }}"
+          Compress-Archive -Path ./install/* -DestinationPath ../heiFIP-$VERSION-$ARCH.zip
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: heiFIP-${{ matrix.os }}-${{ matrix.arch }}
+          path: |
+            heiFIP-*.tar.gz
+            heiFIP-*.zip
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/*.tar.gz
+            artifacts/*.zip
+          generate_release_notes: true

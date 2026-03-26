@@ -3,6 +3,7 @@
 #include <variant>
 #include <string>
 
+#include <filesystem>
 #include "extractor.cpp"
 
 // Runner class orchestrates multithreaded image generation using FIPExtractor
@@ -57,10 +58,7 @@ public:
         );
 
         // Ensure output path is properly formed before saving
-        if (!output_dir.empty() && output_dir.back() == '/') {
-            extractor.save_image(img, output_dir + output_name);
-        } else {
-            extractor.save_image(img, output_dir + "/" + output_name);
-        }
+        std::filesystem::path out_path = std::filesystem::path(output_dir) / output_name;
+        extractor.save_image(img, out_path.string());
     }
 };
