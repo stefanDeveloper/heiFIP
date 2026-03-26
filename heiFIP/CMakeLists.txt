@@ -9,8 +9,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # === 2. Maximum optimization flags for Release ===
-set(CMAKE_CXX_FLAGS_RELEASE "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
-set(CMAKE_C_FLAGS_RELEASE   "-O3 -march=native -funroll-loops -flto=auto -DNDEBUG")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3 -funroll-loops -flto=auto -DNDEBUG")
+set(CMAKE_C_FLAGS_RELEASE   "-O3 -funroll-loops -flto=auto -DNDEBUG")
 
 # === 3. Find dependencies ===
 
@@ -43,10 +43,15 @@ foreach(_target IN ITEMS heiFIP main)
     )
 endforeach()
 
+# === 8. Install rules ===
+install(TARGETS heiFIP RUNTIME DESTINATION bin)
+# Optionally install assets if needed
+# install(DIRECTORY assets DESTINATION share/heiFIP)
+
 # === 7. Optimization and LTO in Release builds ===
 foreach(_target IN ITEMS heiFIP main)
     target_compile_options(${_target} PUBLIC
-        $<$<CONFIG:Release>:-O3 -march=native -funroll-loops -flto=auto -DNDEBUG>
+        $<$<CONFIG:Release>:-O3 -funroll-loops -flto=auto -DNDEBUG>
     )
     target_link_options(${_target} PUBLIC
         $<$<CONFIG:Release>:-flto=auto>
