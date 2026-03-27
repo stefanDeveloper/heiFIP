@@ -8,6 +8,7 @@
       "features": ["jpeg", "png"]
     },
     "openssl",
-    "pcapplusplus"
+    "pcapplusplus",
+    "gtest"
   ]
 }

@@ -7,12 +7,13 @@
 #include <iostream>
 #include <concepts>
 
-#include "init.cpp"
-#include "flow.cpp"
-#include "flow_tiled_auto.cpp"
-#include "flow_tiled_fixed.cpp"
-#include "markov_chain.cpp"
-#include "heiFIPPacketImage.cpp"
+#include "init.hpp"
+#include "flow.hpp"
+#include "flow_tiled_auto.hpp"
+#include "flow_tiled_fixed.hpp"
+#include "markov_chain.hpp"
+#include "heiFIPPacketImage.hpp"
+#include "logging.hpp"
 
 
 /**
@@ -169,7 +170,7 @@ public:
                 bool removeDuplicates) 
     {
         if (image.get_matrix().empty() || image.get_matrix()[0].empty()) {
-            std::cout << "[!] Image not created: empty matrix.\n";
+            LWARN("Image not created: empty matrix.");
             return false;
         }
 
@@ -178,22 +179,20 @@ public:
 
         // Enforce minimum dimension constraint:
         if (height < minImageDim || width < minImageDim) {
-            std::cout << "[!] Image not created: dimensions smaller than minimum ("
-                      << minImageDim << ").\n";
+            LWARN("Image not created: dimensions smaller than minimum (" << minImageDim << ").");
             return false;
         }
 
         // Enforce maximum dimension constraint (if nonzero):
         if (maxImageDim != 0 && (height > maxImageDim || width > maxImageDim)) {
-            std::cout << "[!] Image not created: dimensions exceed maximum ("
-                      << maxImageDim << ").\n";
+            LWARN("Image not created: dimensions exceed maximum (" << maxImageDim << ").");
             return false;
         }
 
         if (removeDuplicates) {
             std::vector<std::vector<uint8_t>> matrix = image.get_matrix();
             if (imagesCreatedSet.count(matrix)) {
-                std::cout << "[!] Image not created: duplicate detected.\n";
+                LDEBUG("Image not created: duplicate detected.");
                 return false;
             }
             imagesCreatedSet.insert({matrix, true});
@@ -237,8 +236,11 @@ public:
     ) {
         // Verify existence of the pcap file before proceeding:
         if (!std::filesystem::exists(input_file)) {
+            LERROR("Input file does not exist: " << input_file);
             throw std::runtime_error("Input file does not exist: " + input_file);
         }
+
+        LINFO("Processing PCAP file: " << input_file);
 
         // Read and preprocess packets from the file:
         //   - If remove_duplicates is true, duplicates are dropped here.
@@ -250,6 +252,8 @@ public:
                 remove_duplicates,
                 max_packets_per_flow
             );
+
+        LINFO("Read " << processed_packets.size() << " packets from file.");
 
         // Delegate to createMatrix, passing along preprocessing/filtering criteria
         return createMatrix(
@@ -263,6 +267,21 @@ public:
             remove_duplicates,
             args
         );
+    }
+    
+    /**
+     * @brief Public access to packet reading functionality.
+     */
+    std::vector<std::unique_ptr<FIPPacket>> getPackets(
+        const std::string& input_file,
+        PacketProcessorType preprocessing_type = PacketProcessorType::NONE,
+        bool remove_duplicates = false,
+        size_t maxCount = 64
+    ) {
+        if (!std::filesystem::exists(input_file)) {
+            return {};
+        }
+        return processor.readPacketsFile(input_file, preprocessing_type, remove_duplicates, maxCount);
     }
 
     /**
@@ -341,6 +360,7 @@ public:
 
         // If we have a maximum packet‐per‐flow limit, cut the packet list down now:
         if (max_packets_per_flow && packets.size() > max_packets_per_flow) {
+            LDEBUG("Truncating packet list from " << packets.size() << " to " << max_packets_per_flow);
             packets.resize(max_packets_per_flow);
         }
 
@@ -494,7 +514,7 @@ public:
     }
 
     /**
-     * @brief Write the first 2D image in a UInt8Matrix vector to disk as a PNG file.
+     * @brief Write 2D image in a UInt8Matrix vector to disk as a PNG file.
      *
      * @param img          A vector of 2D matrices. Only `img[0]` is used (grayscale).
      * @param output_path  The desired file path (without extension). A ".png" is appended.
@@ -510,32 +530,44 @@ public:
     void save_image(const UInt8Matrix& img, const std::string& output_path) {
         // Quick sanity check: must have at least one image, and that image must be non-empty
         if (img.empty() || img[0].empty() || img[0][0].empty()) {
-            std::cerr << "[!] Empty image, cannot save: " << output_path << "\n";
+            LWARN("Empty image, cannot save: " << output_path);
             return;
         }
 
-        // Work with the first image slice (assuming grayscale)
-        const auto& grayscale_image = img[0];
-        int height = static_cast<int>(grayscale_image.size());
-        int width  = static_cast<int>(grayscale_image[0].size());
-
-        // Create an OpenCV Mat of the correct size and type (8‐bit unsigned, single channel)
-        cv::Mat mat(height, width, CV_8UC1);
-
-        // Copy pixel values row by row
-        for (int i = 0; i < height; ++i) {
-            uint8_t* row_ptr = mat.ptr<uint8_t>(i);
-            for (int j = 0; j < width; ++j) {
-                row_ptr[j] = grayscale_image[i][j];
-            }
-        }
-
-        // Append .png extension and ensure parent directory exists
-        std::filesystem::path outp(output_path + ".png");
+        // Ensure parent directory exists
+        std::filesystem::path outp(output_path);
         std::filesystem::create_directories(outp.parent_path());
 
-        // Write the PNG file to disk
-        cv::imwrite(outp.string(), mat);
+        // Save each image slice (assuming grayscale)
+        for (size_t k = 0; k < img.size(); ++k) {
+            const auto& grayscale_image = img[k];
+            if (grayscale_image.empty() || grayscale_image[0].empty()) continue;
+
+            int height = static_cast<int>(grayscale_image.size());
+            int width  = static_cast<int>(grayscale_image[0].size());
+
+            // Create an OpenCV Mat of the correct size and type (8-bit unsigned, single channel)
+            cv::Mat mat(height, width, CV_8UC1);
+
+            // Copy pixel values row by row
+            for (int i = 0; i < height; ++i) {
+                uint8_t* row_ptr = mat.ptr<uint8_t>(i);
+                for (int j = 0; j < width; ++j) {
+                    row_ptr[j] = grayscale_image[i][j];
+                }
+            }
+
+            std::string final_path;
+            if (img.size() == 1) {
+                final_path = output_path + ".png";
+            } else {
+                final_path = output_path + "_" + std::to_string(k) + ".png";
+            }
+
+            // Write the PNG file to disk
+            cv::imwrite(final_path, mat);
+            LINFO("Image saved to: " << final_path);
+        }
     }
 
 private:

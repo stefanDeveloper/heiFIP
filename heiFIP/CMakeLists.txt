@@ -17,34 +17,55 @@ set(CMAKE_C_FLAGS_RELEASE   "-O3 -march=native -funroll-loops -flto=auto -DNDEBU
 find_package(OpenSSL REQUIRED)
 find_package(OpenCV REQUIRED)
 find_package(PcapPlusPlus CONFIG REQUIRED)
+find_package(GTest CONFIG REQUIRED)
 
 # === 4. User project headers ===
 include_directories(
+    ${CMAKE_SOURCE_DIR}
     ${CMAKE_SOURCE_DIR}/assets
     ${CMAKE_SOURCE_DIR}/plugins
     ${CMAKE_SOURCE_DIR}/images
     ${CMAKE_SOURCE_DIR}/layers
 )
 
-# === 5. Executables ===
+# === 5. Enable Testing ===
+enable_testing()
+
+# === 6. Common Libraries ===
+set(HEIFIP_LIBS
+    OpenSSL::Crypto
+    OpenSSL::SSL
+    PcapPlusPlus::Common++
+    PcapPlusPlus::Packet++
+    PcapPlusPlus::Pcap++
+    ${OpenCV_LIBS}
+)
+
+# === 7. Executables ===
 add_executable(heiFIP cli.cpp)
 add_executable(main   main.cpp)
-# main2.cpp removed
 
-# === 6. Apply libraries ===
-foreach(_target IN ITEMS heiFIP main)
-    target_link_libraries(${_target} PUBLIC
-        OpenSSL::Crypto
-        OpenSSL::SSL
-        PcapPlusPlus::Common++
-        PcapPlusPlus::Packet++
-        PcapPlusPlus::Pcap++
-        ${OpenCV_LIBS}
-    )
+# === 8. Tests ===
+add_executable(heiFIP_tests 
+    tests/test_packet_image.cpp
+    tests/test_flow_image.cpp
+    tests/test_tiled_images.cpp
+    tests/test_markov.cpp
+    tests/test_tile_utils.cpp
+    tests/test_extractor.cpp
+    tests/test_layers.cpp
+    tests/test_cli.cpp
+)
+
+# === 9. Apply libraries ===
+foreach(_target IN ITEMS heiFIP main heiFIP_tests)
+    target_link_libraries(${_target} PUBLIC ${HEIFIP_LIBS})
 endforeach()
 
-# === 7. Optimization and LTO in Release builds ===
-foreach(_target IN ITEMS heiFIP main)
+target_link_libraries(heiFIP_tests PUBLIC GTest::gtest_main)
+
+# === 10. Optimization and LTO in Release builds ===
+foreach(_target IN ITEMS heiFIP main heiFIP_tests)
     target_compile_options(${_target} PUBLIC
         $<$<CONFIG:Release>:-O3 -march=native -funroll-loops -flto=auto -DNDEBUG>
     )
@@ -52,3 +73,6 @@ foreach(_target IN ITEMS heiFIP main)
         $<$<CONFIG:Release>:-flto=auto>
     )
 endforeach()
+
+include(GoogleTest)
+gtest_discover_tests(heiFIP_tests)

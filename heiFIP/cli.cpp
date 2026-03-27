@@ -3,20 +3,22 @@
 #include <string>
 #include <getopt.h>
 
-#include "extractor.cpp"
-#include "runner.cpp"
+#include "extractor.hpp"
+#include "runner.hpp"
+#include "logging.hpp"
 
 /// @brief Prints usage/help information for the CLI tool.
 void print_usage(const char* progName) {
     std::cout << "Usage: " << progName << " [options]\n"
               << "  -i, --input FILE           input pcap file path\n"
               << "  -o, --output DIR           output directory\n"
-              << "  -t, --threads N            number of threads (default 1)\n"
-              << "  -p, --processor TYPE       preprocessing type: NONE or HEADER\n"
+              << "  -t, --threads N            number of threads (default: 1)\n"
+              << "  -p, --processor TYPE       preprocessing type: NONE or HEADER (default: NONE)\n"
               << "  -m, --mode MODE            image type: FlowImage, FlowImageTiledFixed, FlowImageTiledAuto,\n"
               << "                             MarkovTransitionMatrixFlow, MarkovTransitionMatrixPacket, PacketImage\n"
-              << "  --dim N                    image dimension\n"
-              << "  --fill N                   fill value for missing data\n"
+              << "                             (default: PacketImage)\n"
+              << "  --dim N                    image dimension (default: 16)\n"
+              << "  --fill N                   fill value for missing data (default: 0)\n"
               << "  --cols N                   number of columns (used in some modes)\n"
               << "  --auto-dim                 enable auto-dimension (FlowImageTiledAuto, etc.)\n"
               << "  --append                   append mode for FlowImage\n"
@@ -25,7 +27,9 @@ void print_usage(const char* progName) {
               << "  --min-pkts N               minimum packets per flow\n"
               << "  --max-pkts N               maximum packets per flow\n"
               << "  --remove-dup               remove duplicate packets/flows\n"
-              << "  --name                     name of processed image\n "
+              << "  --name NAME                name of processed image (default: heiFIPGeneratedImage)\n"
+              << "  -v, --verbose              enable debug logging (same as --log-level DEBUG)\n"
+              << "  --log-level LEVEL          set logging level: DEBUG, INFO, WARN, ERROR (default: INFO)\n"
               << "  -h, --help                 display this help and exit\n";
 }
 
@@ -39,7 +43,7 @@ int main(int argc, char* argv[]) {
 
     // Optional parameters with defaults
     std::string image_name = "heiFIPGeneratedImage";
-    size_t dim = 0, fill = 0, cols = 0;
+    size_t dim = 16, fill = 0, cols = 0;
     bool auto_dim = false, append = false;
     size_t min_dim = 0, max_dim = 0;
     size_t min_pkts = 0, max_pkts = 0;
@@ -63,6 +67,8 @@ int main(int argc, char* argv[]) {
         {"min-pkts",    required_argument, 0,  0 },
         {"max-pkts",    required_argument, 0,  0 },
         {"remove-dup",  no_argument,       0,  0 },
+        {"verbose",     no_argument,       0, 'v'},
+        {"log-level",   required_argument, 0,  0 },
         {"help",        no_argument,       0, 'h'},
         {0, 0, 0, 0}
     };
@@ -70,7 +76,7 @@ int main(int argc, char* argv[]) {
     // Parse command-line arguments
     int opt;
     int long_index = 0;
-    while ((opt = getopt_long(argc, argv, "i:o:t:p:m:h", long_opts, &long_index)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:o:t:p:m:vh", long_opts, &long_index)) != -1) {
         switch (opt) {
             case 'i': input_file = optarg; break;
             case 'o': output_dir = optarg; break;
@@ -101,6 +107,17 @@ int main(int argc, char* argv[]) {
                 else if (strcmp(long_opts[long_index].name, "max-pkts") == 0)  max_pkts = std::stoi(optarg);
                 else if (strcmp(long_opts[long_index].name, "remove-dup") == 0) remove_dup = true;
                 else if (strcmp(long_opts[long_index].name, "name") == 0) image_name = optarg;
+                else if (strcmp(long_opts[long_index].name, "log-level") == 0) {
+                    std::string lvl = optarg;
+                    if (lvl == "DEBUG") Logger::getInstance().setLevel(LogLevel::DEBUG);
+                    else if (lvl == "INFO") Logger::getInstance().setLevel(LogLevel::INFO);
+                    else if (lvl == "WARN") Logger::getInstance().setLevel(LogLevel::WARNING);
+                    else if (lvl == "ERROR") Logger::getInstance().setLevel(LogLevel::ERROR);
+                    else { LWARN("Unknown log level: " << lvl << ". Defaulting to INFO."); }
+                }
+                break;
+            case 'v':
+                Logger::getInstance().setLevel(LogLevel::DEBUG);
                 break;
             case 'h': print_usage(argv[0]); return 0;
             default:  print_usage(argv[0]); return 1;

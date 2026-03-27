@@ -5,7 +5,9 @@
 #include <iomanip>
 #include <map>
 
-#include "transport.cpp"
+#include "transport.hpp"
+#include "logging.hpp"
+#include "header.hpp"
 #include "PcapPlusPlusVersion.h"
 #include "HttpLayer.h"
 
@@ -116,6 +118,7 @@ public:
      *   7. Recompute checksums/lengths (Packet.computeCalculateFields()).
      */
     void header_preprocessing() override {
+        LDEBUG("HTTPRequestPacket::header_preprocessing() - Substituting HTTPRequest trace");
         // First, perform any transport-layer substitutions
         HTTPPacket::header_preprocessing();
 
@@ -224,7 +227,7 @@ private:
      *        strip all layers that follow the HttpRequestLayer.
      *
      * Workflow:
-     *   1. Check if "Raw" is present in layer_map.
+     *   1. Check if "Raw" is in layer_map.
      *   2. Locate the HttpRequestLayer.
      *   3. Call Packet.removeAllLayersAfter(httpRequestLayer) to drop downstream payload layers.
      *   4. Recompute checksums/lengths.
@@ -301,6 +304,7 @@ public:
      *   6. Add the custom layer (Packet.addLayer(customResp)), then recompute checksums/lengths.
      */
     void header_preprocessing() override {
+        LDEBUG("HTTPResponsePacket::header_preprocessing() - Substituting HTTPResponse trace");
         // First, perform any transport-layer and IP/Ethernet substitutions
         HTTPPacket::header_preprocessing();
 

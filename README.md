@@ -83,102 +83,102 @@ The idea to create heiFIP came from working with Deep Learning approaches to cla
 
 | Image Type | Description | Example |
 |------------|-------------|---------|
-| Packet | Converts a single packet into a square image. Size depends on the total length | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/packet.png?raw=true) |
-| Flow | Converts a flow packet into a square image | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/flow-tiled.png?raw=true) |
-| Markov Transition Matrix Packet | Converts a packet into a Markov Transition Matrix. Size is fixed to 16x16. | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/markov-packet.png?raw=true) |
-| Markov Transition Matrix Flow | Converts a flow into a Markov Transition Matrix. It squares the image based on the number of packets | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/heiFIP-cpp/examples/markov-flow.png?raw=true) |
+| Packet | Converts a single packet into a square image. Size depends on the total length | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/packet.png?raw=true) |
+| Flow | Converts a flow packet into a square image | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/flow-tiled.png?raw=true) |
+| Markov Transition Matrix Packet | Converts a packet into a Markov Transition Matrix. Size is fixed to 16x16. | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-packet.png?raw=true) |
+| Markov Transition Matrix Flow | Converts a flow into a Markov Transition Matrix. It squares the image based on the number of packets | ![SMB Connection](https://raw.githubusercontent.com/stefanDeveloper/heiFIP/main/examples/markov-flow.png?raw=true) |
 
 ## Requirements
-
-* **C++ Compiler**: GCC ≥ 9.0, Clang ≥ 10, or MSVC 2019 with C++17 support.
-* **CMake**: Version ≥ 3.14
-* **vcpkg**: A C++ package manager to automatically download and build dependencies.
-
-Dependencies managed automatically by `vcpkg`:
-* **PcapPlusPlus**
-* **OpenSSL**
-* **OpenCV**
-* **libpcap** (Linux/macOS) / `pthread`
-
-## Building from source
-
-We use `vcpkg` to manage all C++ dependencies for heiFIP smoothly. If you don't have `vcpkg` installed, follow their [official instructions](https://github.com/microsoft/vcpkg#quick-start-windows-linux-macos).
-
-Ensure the `VCPKG_ROOT` environment variable is set to your `vcpkg` installation path (e.g., `export VCPKG_ROOT=~/vcpkg`).
-
-```bash
-# Clone this repo
-git clone https://github.com/stefanDeveloper/heiFIP.git
-cd heiFIP/heiFIP/
-
-# Set up vcpkg
-git clone https://github.com/microsoft/vcpkg.git
-./vcpkg/bootstrap-vcpkg.sh
-export VCPKG_ROOT=$(pwd)/vcpkg
-
-# Create build directory and run CMake using the vcpkg toolchain
-# The toolchain will automatically read vcpkg.json and install dependencies!
-cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
-
-# Compile the project
-cmake --build build -j$(nproc)
-
-# The executables 'heiFIP' and 'main' will be produced in build/
-```
-
-
-## Getting Started
-
-After installation the command line interface can be used to extract images from pcap files witht he following command
-```bash
-./heiFIPCpp \
-  --name HelloHeiFIP
-  --input /path/to/capture.pcap \
-  --output /path/to/outdir \
-  --threads 4 \
-  --processor HEADER \
-  --mode FlowImageTiledAuto \
-  --dim 16 \
-  --apppend \
-  --fill 0 \
-  --min-dim 10 \
-  --max-dim 2000 \
-  --min-pkts 10 \
-  --max-pkts 100 \
-  --remove-dup
-```
-
-### Options
-| Flag                | Description                                                    |
-| ------------------- | -------------------------------------------------------------- |
-| `-i`, `--input`     | Input PCAP file path                                           |
-| `-o`, `--output`    | Output directory                                               |
-| `-t`, `--threads`   | Number of worker threads (default: 1)                          |
-| `-p`, `--processor` | Preprocessing: `NONE` or `HEADER`                              |
-| `-m`, `--mode`      | Image type: `PacketImage`, `FlowImage`, `FlowImageTiledFixed`, |
-|                     | `FlowImageTiledAuto`, `MarkovTransitionMatrixFlow`,            |
-|                     | `MarkovTransitionMatrixPacket`                                 |
-| `--dim`             | Base dimension for image (e.g. width/height in pixels)         |
-| `--fill`            | Fill or padding value (0–255)                                  |
-| `--cols`            | Number of columns (for tiled/fixed or Markov flow)             |
-| `--auto-dim`        | Enable auto‑dimension selection (bool)                         |
-| `--append`          | Enable auto‑dimension selection (bool)                         |
-| `--min-dim`         | Minimum allowed image dimension                                |
-| `--max-dim`         | Maximum allowed image dimension                                |
-| `--min-pkts`        | Minimum packets per flow (for tiled/flow modes)                |
-| `--max-pkts`        | Maximum packets per flow                                       |
-| `--remove-dup`      | Remove duplicate flows/packets by hash                         |
-| `--name`            | Filname of processed image                                     |
-| `-h`, `--help`      | Show this help message                                         |
-
-## Extending
-
-To add a new image type:
-
-1. Define a new `ImageArgs` struct in `extractor.cpp`.
-2. Extend the `ImageType` enum.
-3. Implement the conversion in `PacketProcessor::createImageFromPacket()`.
-4. Update the CLI `--mode` parser to include your new type.
+ 
+ * **C++ Compiler**: GCC ≥ 9.0, Clang ≥ 10, or MSVC 2019 with C++20 support.
+ * **CMake**: Version ≥ 3.14
+ * **vcpkg**: A C++ package manager to automatically download and build dependencies.
+ 
+ Dependencies managed automatically by `vcpkg`:
+ * **PcapPlusPlus**
+ * **OpenSSL**
+ * **OpenCV**
+ * **GTest** (GoogleTest)
+ * **libpcap** (Linux/macOS) / `pthread`
+ 
+ ## Building from source
+ 
+ We use `vcpkg` to manage all C++ dependencies for heiFIP smoothly. If you don't have `vcpkg` installed, follow their [official instructions](https://github.com/microsoft/vcpkg#quick-start-windows-linux-macos).
+ 
+ Ensure the `VCPKG_ROOT` environment variable is set to your `vcpkg` installation path (e.g., `export VCPKG_ROOT=~/vcpkg`).
+ 
+ ```bash
+ # Clone this repo
+ git clone https://github.com/stefanDeveloper/heiFIP.git
+ cd heiFIP/heiFIP/
+ 
+ # Create build directory and run CMake using the vcpkg toolchain
+ # The toolchain will automatically read vcpkg.json and install dependencies!
+ cmake -B build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_TOOLCHAIN_FILE="$VCPKG_ROOT/scripts/buildsystems/vcpkg.cmake"
+ 
+ # Compile the project
+ cmake --build build -j$(nproc)
+ 
+ # The executables 'heiFIP' and 'main' will be produced in build/
+ ```
+ 
+ ## Testing
+ 
+ heiFIP includes a comprehensive test suite covering protocol layers, image generation, and CLI functionality.
+ 
+ ```bash
+ # Run all tests using CTest
+ cd build
+ ctest --output-on-failure
+ ```
+ 
+ ## Getting Started
+ 
+ After installation the command line interface can be used to extract images from pcap files with the following command (Note: `--dim` defaults to 16 and `--processor` to `NONE`).
+ ```bash
+ ./build/heiFIP \
+   --name HelloHeiFIP \
+   --input /path/to/capture.pcap \
+   --output /path/to/outdir \
+   --threads 4 \
+   --processor HEADER \
+   --mode FlowImageTiledAuto \
+   --max-pkts 100 \
+   --remove-dup
+ ```
+ 
+ ### Options
+ | Flag                | Description                                                    |
+ | ------------------- | -------------------------------------------------------------- |
+ | `-i`, `--input`     | Input PCAP file path                                           |
+ | `-o`, `--output`    | Output directory                                               |
+ | `-t`, `--threads`   | Number of worker threads (default: 1)                          |
+ | `-p`, `--processor` | Preprocessing: `NONE` or `HEADER` (default: `NONE`)            |
+ | `-m`, `--mode`      | Image type: `PacketImage`, `FlowImage`, `FlowImageTiledFixed`, |
+ |                     | `FlowImageTiledAuto`, `MarkovTransitionMatrixFlow`,            |
+ |                     | `MarkovTransitionMatrixPacket`                                 |
+ | `--dim`             | Base dimension for image (default: 16)                         |
+ | `--fill`            | Fill or padding value (0–255)                                  |
+ | `--cols`            | Number of columns (for tiled/fixed or Markov flow)             |
+ | `--auto-dim`        | Enable auto‑dimension selection                                |
+ | `--append`          | Enable append mode for FlowImage                               |
+ | `--min-dim`         | Minimum allowed image dimension                                |
+ | `--max-dim`         | Maximum allowed image dimension                                |
+ | `--min-pkts`        | Minimum packets per flow (for tiled/flow modes)                |
+ | `--max-pkts`        | Maximum packets per flow                                       |
+ | `--remove-dup`      | Remove duplicate flows/packets by hash                         |
+ | `--name`            | Filename of processed image                                    |
+ | `-h`, `--help`      | Show this help message                                         |
+ 
+ ## Extending
+ 
+ To add a new image type:
+ 
+ 1. Define a new `ImageArgs` struct in `extractor.hpp`.
+ 2. Extend the `ImageType` enum and the `ImageArgsVariant` in `extractor.hpp`.
+ 3. Implement the image logic (following the pattern of `FlowImage` or `heiFIPPacketImage`).
+ 4. Add the image creation case in `FIPExtractor::createMatrix()`.
+ 5. Update the CLI `--mode` parser in `cli.cpp` to include your new type.
 
 ---
 

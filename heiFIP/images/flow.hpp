@@ -11,7 +11,7 @@
 #include <string>
 
 #include "NetworkTrafficImage.hpp"
-#include "heiFIPPacketImage.cpp"
+#include "heiFIPPacketImage.hpp"
 
 /**
  * @class FlowImage
@@ -139,18 +139,20 @@ private:
         }
         // If placing each packet’s bytes on its own row
         else {
-            // a) Determine maximum packet length
-            size_t maxLength = 0;
-            for (const auto& binary : binaries) {
-                maxLength = std::max(maxLength, binary.size());
+            // a) Use dim as width (if dim > 0), otherwise use maximum packet length
+            size_t width = (dim > 0) ? static_cast<size_t>(dim) : 0;
+            if (width == 0) {
+                for (const auto& binary : binaries) {
+                    width = std::max(width, binary.size());
+                }
             }
 
-            // b) Build one row per packet, padding each to maxLength with `fill`
+            // b) Build one row per packet, padding or truncating each to width with `fill`
             std::vector<std::vector<uint8_t>> reshaped;
             reshaped.reserve(binaries.size());
             for (const auto& binary : binaries) {
                 std::vector<uint8_t> row = binary;                     // Copy raw bytes
-                row.resize(maxLength, static_cast<uint8_t>(fill));     // Pad to uniform length
+                row.resize(width, static_cast<uint8_t>(fill));         // Pad or truncate to fixed width
                 reshaped.push_back(std::move(row));
             }
 

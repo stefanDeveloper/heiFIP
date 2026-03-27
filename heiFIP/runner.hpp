@@ -3,7 +3,7 @@
 #include <variant>
 #include <string>
 
-#include "extractor.cpp"
+#include "extractor.hpp"
 
 // Runner class orchestrates multithreaded image generation using FIPExtractor
 class Runner {
